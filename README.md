@@ -261,6 +261,139 @@ npm run test:coverage
 - Integration tests for: workflow patterns, API endpoints
 - Component tests for: Dashboard, WorkflowCard, WorkflowList, EnqueueWorkflowButton
 
+### E2E Testing with Playwright CLI
+
+The project supports [Playwright CLI](https://github.com/microsoft/playwright-cli) for interactive browser automation.
+
+#### Installation
+
+```bash
+# Install globally
+npm install -g @playwright/cli@latest
+
+# Install skills (for coding agents)
+npx playwright-cli install --skills
+
+# Verify installation
+playwright-cli --version
+```
+
+#### Quick Start
+
+```bash
+# Open browser to the app
+npx playwright-cli open http://localhost:3000
+
+# Open in headed mode (visible browser)
+npx playwright-cli open http://localhost:3000 --headed
+
+# Navigate to a page
+npx playwright-cli goto http://localhost:3000/config
+
+# Take a screenshot
+npx playwright-cli screenshot
+```
+
+#### Common Commands
+
+```bash
+# Navigation
+npx playwright-cli open <url>              # Open browser
+npx playwright-cli goto <url>             # Navigate to URL
+npx playwright-cli go-back                # Go back
+npx playwright-cli reload                  # Reload page
+
+# Interaction
+npx playwright-cli click <selector>      # Click element
+npx playwright-cli type <text>             # Type text
+npx playwright-cli fill <selector> <text>  # Fill input
+npx playwright-cli select <selector> <val> # Select dropdown
+npx playwright-cli check <selector>       # Check checkbox
+
+# Screenshot & Snapshot
+npx playwright-cli screenshot              # Take screenshot
+npx playwright-cli snapshot                # Get page structure
+
+# Debugging
+npx playwright-cli console                # View console logs
+npx playwright-cli network                # View network requests
+
+# Session Management
+npx playwright-cli list                   # List all sessions
+npx playwright-cli close-all              # Close all browsers
+```
+
+#### Example Workflows
+
+```bash
+# Test the workflow wizard
+npx playwright-cli open http://localhost:3000
+npx playwright-cli snapshot               # Get element refs
+npx playwright-cli click "Configure & Run Workflow"
+npx playwright-cli screenshot            # Save screenshot
+
+# Test login flow
+npx playwright-cli open http://localhost:3000/login
+npx playwright-cli type "demo@tradenext6.app"
+npx playwright-cli type "demo123"
+npx playwright-cli click "Login"
+npx playwright-cli screenshot
+
+# Test with specific session
+npx playwright-cli -s=workflow-test open http://localhost:3000
+npx playwright-cli list                   # Shows session info
+```
+
+#### Sessions
+
+Playwright CLI preserves browser state between calls:
+
+```bash
+# Open with persistent profile
+npx playwright-cli open http://localhost:3000 --persistent
+
+# Use named session
+npx playwright-cli -s=my-session open http://localhost:3000
+
+# List all sessions
+npx playwright-cli list
+
+# Close specific session
+npx playwright-cli -s=my-session close
+
+# Delete session data
+npx playwright-cli -s=my-session delete-data
+```
+
+#### Configuration
+
+Create `.playwright/cli.config.json` for project defaults:
+
+```json
+{
+  "browser": {
+    "browserName": "chromium",
+    "isolated": false,
+    "userDataDir": ".playwright/sessions"
+  },
+  "outputDir": ".playwright/output",
+  "outputMode": "file",
+  "console": {
+    "level": "info"
+  }
+}
+```
+
+#### For Coding Agents
+
+The installed skills enable agents to use Playwright CLI:
+
+```bash
+# Agent command example
+Test the login flow using playwright-cli.
+Check playwright-cli --help for available commands.
+```
+
 ## OpenCode Agent
 
 The project includes OpenCode agent configuration for enhanced development:

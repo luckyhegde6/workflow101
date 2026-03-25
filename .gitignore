@@ -30,8 +30,24 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (NEVER commit these!)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Never commit these files containing secrets
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+credentials.json
+secrets.json
+*.secret
+service-account.json
+docker-compose.override.yml
 
 # vercel
 .vercel

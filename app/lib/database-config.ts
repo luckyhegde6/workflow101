@@ -50,6 +50,8 @@ export function getDatabaseConfig(): DatabaseConfig {
 
 function getSupabaseConnectionString(): string {
   return (
+    process.env.DIRECT_URL ||
+    process.env.DATABASE_REMOTE ||
     process.env.SUPABASE_DB_URL ||
     process.env.SUPABASE_DATABASE_URL ||
     process.env.DBOS_SYSTEM_DATABASE_URL ||

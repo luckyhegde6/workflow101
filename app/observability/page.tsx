@@ -599,7 +599,7 @@ export default function ObservabilityPage() {
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Supabase URL</h3>
                   <code className="text-sm text-gray-600 dark:text-gray-400 font-mono break-all">
-                    https://vclwajxnqslrwkwkhwrw.supabase.co
+                    {process.env.NEXT_PUBLIC_SUPABASE_URL || 'Not configured'}
                   </code>
                 </div>
               </div>

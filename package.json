@@ -24,7 +24,11 @@
     "test:api": "vitest run tests/api",
     "test:unit": "vitest run tests/unit",
     "test:coverage": "vitest run --coverage",
-    "test:all": "npm run test:unit && npm run test:api && npm run test:e2e"
+    "test:all": "npm run test:unit && npm run test:api && npm run test:e2e",
+    "db:config": "node scripts/test-db-config.js",
+    "db:test-supabase": "node scripts/test-supabase-connection.js",
+    "security:check": "node scripts/pre-commit-security.js",
+    "security:install-hooks": "npx husky add .husky/pre-commit \"npm run security:check\""
   },
   "dependencies": {
     "@dbos-inc/dbos-sdk": "^4.11.11",

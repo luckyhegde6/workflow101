@@ -4,7 +4,36 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Security
+- **Pre-commit Security Hook** (`scripts/pre-commit-security.js`)
+  - Automatic detection of hardcoded secrets
+  - Pattern matching for API keys, passwords, tokens
+  - Scans TypeScript, JavaScript, JSON, YAML files
+  - Safe patterns for localhost/dev credentials
+  - Command: `npm run security:check`
+  - Install hook: `npm run security:install-hooks`
+
+- **Secret Management**
+  - `.gitignore` updated with comprehensive secret file patterns
+  - Real secrets removed from `.env` (moved to `.env.local`)
+  - All database connections read from environment variables
+  - AGENTS.md updated with security rules
+
 ### Added
+- **Playwright CLI Integration** (E2E Testing)
+  - Installed `@playwright/cli` globally
+  - Skills installed to `.claude/skills/playwright-cli`
+  - Comprehensive E2E testing documentation in README.md
+  - Commands: open, goto, click, type, screenshot, snapshot, console, network
+  - Session management: list, close, delete-data
+  - Headed mode and persistent profiles support
+
+- **Database Configuration Scripts** (`scripts/`)
+  - `test-db-config.js` - Test database configuration
+  - `test-supabase-connection.js` - Test Supabase remote connection
+  - `.env.local.example` - Template for local environment overrides
+  - New npm scripts: `npm run db:config`, `npm run db:test-supabase`
+
 - **Database Configuration** (`app/lib/database-config.ts`)
   - Environment-based database selection (local PostgreSQL vs Supabase)
   - `USE_REMOTE=true` to use Supabase

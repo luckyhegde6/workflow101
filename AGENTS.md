@@ -183,15 +183,63 @@ Issues Found: X
 
 ## Security Guidelines (MANDATORY)
 
-**Before ANY commit:**
-- No hardcoded secrets (API keys, passwords, tokens)
-- All user inputs validated
-- SQL injection prevention (parameterized queries)
-- XSS prevention (sanitized HTML)
-- CSRF protection enabled
-- Authentication/authorization verified
-- Rate limiting on all endpoints
-- Error messages don't leak sensitive data
+### Pre-Commit Security Check (MANDATORY)
+```bash
+# Run security check before any commit
+npm run security:check
+
+# Install as pre-commit hook (one-time)
+npm run security:install-hooks
+```
+
+### Before ANY Commit - Security Checklist
+- [ ] `npm run security:check` passes
+- [ ] No hardcoded secrets (API keys, passwords, tokens)
+- [ ] All user inputs validated
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] XSS prevention (sanitized HTML)
+- [ ] CSRF protection enabled
+- [ ] Authentication/authorization verified
+- [ ] Rate limiting on all endpoints
+- [ ] Error messages don't leak sensitive data
+
+### Secret Management Rules
+1. **NEVER commit secrets** - Use environment variables only
+2. **Use `process.env`** - All secrets must be read from `process.env`
+3. **.env files are gitignored** - Real credentials go in `.env.local`
+4. **Use templates** - `.env.example` and `.env.local.example` for structure
+5. **Rotate secrets** - If leaked, rotate immediately
+6. **Least privilege** - Use minimum required permissions
+
+### Allowed Secret Patterns
+```typescript
+// ✅ Good - read from environment
+const apiKey = process.env.API_KEY;
+const dbPassword = process.env.DB_PASSWORD;
+const connectionString = process.env.DATABASE_URL;
+
+// ❌ Bad - hardcoded secrets
+const apiKey = "sk_live_xxxxx";
+const dbPassword = "mysecretpassword";
+const connectionString = "postgresql://user:password@host/db";
+```
+
+### Environment Files
+| File | Committed | Contents |
+|------|-----------|----------|
+| `.env` | ✅ Yes | Non-secret defaults, structure |
+| `.env.local` | ❌ NO | Real secrets (auto-gitignored) |
+| `.env.production` | ✅ Yes | Production non-secrets |
+| `.env.production.local` | ❌ NO | Production secrets |
+
+### Database Connection Priority
+```typescript
+// For Supabase, try in order:
+1. process.env.DIRECT_URL          // Direct connection (for migrations)
+2. process.env.DATABASE_REMOTE    // Pooler connection
+3. process.env.SUPABASE_DB_URL    // Manual URL
+4. process.env.SUPABASE_DB_PASSWORD + project ref // Fallback
+```
 
 **Secret management:** NEVER hardcode secrets. Use environment variables.
 
@@ -232,14 +280,28 @@ Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`
 
 ## Environment Variables
 
-### Database (DBOS)
-- `POSTGRES_URL_NON_POOLING` - PostgreSQL connection string for DBOS
-- `DBOS_SYSTEM_DATABASE_URL` - DBOS system database URL
+### Database Configuration
+| Variable | Description |
+|----------|-------------|
+| `ENVIRONMENT` | `local` \| `production` \| `development` |
+| `USE_REMOTE` | `true` \| `false` (overrides ENVIRONMENT) |
+| `DBOS_SYSTEM_DATABASE_URL` | PostgreSQL connection string for DBOS |
+| `POSTGRES_URL_NON_POOLING` | PostgreSQL connection string |
 
 ### Supabase
-- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` - Supabase publishable key
-- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (server-side only)
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | Supabase publishable key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-side only) |
+| `SUPABASE_DB_URL` | Direct database connection URL |
+| `SUPABASE_DB_PASSWORD` | Database connection password |
+
+### Decision Logic
+1. `USE_REMOTE=true` → Use Supabase (remote)
+2. `USE_REMOTE=false` → Use local PostgreSQL
+3. `ENVIRONMENT=production` → Use Supabase (unless `USE_REMOTE=false`)
+4. `ENVIRONMENT=local` → Use local PostgreSQL (unless `USE_REMOTE=true`)
 
 ## Important Commands
 
