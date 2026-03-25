@@ -35,16 +35,14 @@ All notable changes to this project will be documented in this file.
   - Updated schema URL to `https://openapi.vercel.sh/vercel.json`
   - Queue triggers using `triggers` instead of `experimentalTriggers`
   - Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
-  - Region configuration for iad1
-  - Trailing slash disabled
-  - Added `installCommand` to use npm with `--legacy-peer-deps`
+  - Added `installCommand` to use pnpm with `--no-frozen-lockfile`
   - Removed conflicting `functions.triggers` (queues configured via UI)
 
 - **Dependency Fixes**
   - Updated `workflow` version to `4.2.0-beta.71` to match lockfile
   - Updated `vitest` version to `^4.1.1` to match lockfile
-  - Removed stale `pnpm-lock.yaml` (using npm instead)
   - Created `sentry.properties` for Sentry configuration
+  - Switched to pnpm (removed package-lock.json)
 
 ### Security
 - **Pre-commit Security Hook** (`scripts/pre-commit-security.js`)
