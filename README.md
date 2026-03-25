@@ -410,11 +410,13 @@ npx vercel --prod
 
 ### 5. Configure Queues
 
-The `vercel.json` includes queue triggers for:
-- `workflows` - Main workflow execution
-- `scheduled-workflows` - Delayed workflow queue
+Queue triggers need to be configured through Vercel UI:
 
-Free tier limits:
+1. Go to Vercel Dashboard → Your Project → Storage
+2. Create a Queue or select existing one
+3. Configure the consumer settings
+
+**Note**: Free tier limits:
 - Cron: Once per day
 - Queue sends: 4,000/month
 - Retention: 24 hours
@@ -423,30 +425,21 @@ Free tier limits:
 
 ```json
 {
-  "$schema": "https://vercel.com/schemas/json",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
       "path": "/api/cron/daily",
       "schedule": "0 6 * * *"
     }
   ],
-  "functions": {
-    "app/api/queue/workflow/route.ts": {
-      "triggers": [
-        {
-          "type": "queue",
-          "topic": "workflows",
-          "retryAfterSeconds": 60
-        }
-      ]
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" }
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
     }
   ]

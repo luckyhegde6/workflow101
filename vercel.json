@@ -1,27 +1,11 @@
 {
-  "$schema": "https://vercel.com/schemas/json",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
       "path": "/api/cron/daily",
       "schedule": "0 6 * * *"
     }
   ],
-  "functions": {
-    "app/api/queue/workflow/route.ts": {
-      "triggers": [
-        {
-          "type": "queue",
-          "topic": "workflows",
-          "retryAfterSeconds": 60
-        },
-        {
-          "type": "queue",
-          "topic": "scheduled-workflows",
-          "retryAfterSeconds": 60
-        }
-      ]
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
@@ -44,7 +28,5 @@
         }
       ]
     }
-  ],
-  "regions": ["iad1"],
-  "trailingSlash": false
+  ]
 }
