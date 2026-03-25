@@ -31,6 +31,13 @@ All notable changes to this project will be documented in this file.
   - OTLP endpoint for trace export
   - Auth token for CI/CD deployments
 
+- **Vercel Configuration** (`vercel.json`)
+  - Updated schema URL to `https://vercel.com/schemas/json`
+  - Queue triggers using `triggers` instead of `experimentalTriggers`
+  - Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
+  - Region configuration for iad1
+  - Trailing slash disabled
+
 ### Security
 - **Pre-commit Security Hook** (`scripts/pre-commit-security.js`)
   - Automatic detection of hardcoded secrets

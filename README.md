@@ -359,12 +359,99 @@ DBOS_SYSTEM_DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT].supabase.
 
 ## Vercel Deployment
 
-1. Push to GitHub
-2. Connect to Vercel
-3. Add environment variables
-4. Deploy
+### 1. Link to Vercel
 
-The app includes `vercel.json` with cron configuration that runs the worker every minute.
+```bash
+# Login to Vercel
+npx vercel login
+
+# Link project
+npx vercel link
+
+# Add environment variables
+npx vercel env add ENVIRONMENT
+npx vercel env add USE_REMOTE
+npx vercel env add NEXT_PUBLIC_SUPABASE_URL
+npx vercel env add NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+npx vercel env add DATABASE_REMOTE
+npx vercel env add DIRECT_URL
+npx vercel env add SUPABASE_DB_PASSWORD
+```
+
+### 2. Required Environment Variables
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `ENVIRONMENT` | `production` | Set to production for Vercel |
+| `USE_REMOTE` | `true` | Use remote database |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://xxx.supabase.co` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | `sb_xxx` | Supabase anon key |
+| `DATABASE_REMOTE` | Connection string | Supabase connection pooler |
+| `DIRECT_URL` | Connection string | Supabase direct connection |
+| `SUPABASE_DB_PASSWORD` | Password | Database password |
+
+### 3. Deploy
+
+```bash
+# Deploy to preview
+npx vercel
+
+# Deploy to production
+npx vercel --prod
+```
+
+### 4. Create Blob Store
+
+1. Go to Vercel Dashboard → Storage
+2. Create New Database → Blob
+3. Name: `workflow-files`
+4. Access: Private
+5. Copy the `BLOB_READ_WRITE_TOKEN` to environment variables
+
+### 5. Configure Queues
+
+The `vercel.json` includes queue triggers for:
+- `workflows` - Main workflow execution
+- `scheduled-workflows` - Delayed workflow queue
+
+Free tier limits:
+- Cron: Once per day
+- Queue sends: 4,000/month
+- Retention: 24 hours
+
+### vercel.json Configuration
+
+```json
+{
+  "$schema": "https://vercel.com/schemas/json",
+  "crons": [
+    {
+      "path": "/api/cron/daily",
+      "schedule": "0 6 * * *"
+    }
+  ],
+  "functions": {
+    "app/api/queue/workflow/route.ts": {
+      "triggers": [
+        {
+          "type": "queue",
+          "topic": "workflows",
+          "retryAfterSeconds": 60
+        }
+      ]
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    }
+  ]
+}
+```
 
 ## Project Structure
 
