@@ -22,6 +22,7 @@
 - [x] Navbar with page links
 - [x] About page (/about)
 - [x] Contact page (/contact)
+- [x] File upload page (/files) with Vercel Blob
 
 ### Workflow System
 - [x] Workflow scheduling system (immediate, scheduled, recurring)
@@ -29,6 +30,7 @@
 - [x] Confirmation popup
 - [x] Human-in-the-loop approvals
 - [x] Audit logging
+- [x] Vercel Queues integration
 
 ### Database & Integration
 - [x] Supabase integration
@@ -40,8 +42,14 @@
 - [x] Pre-commit security hook (secret detection)
 - [x] Secret management rules in AGENTS.md
 - [x] .gitignore updated with secret patterns
-- [x] Real secrets removed from .env
+- [x] Real secrets removed from .env (moved to .env.local)
 - [x] SECURITY.md created
+
+### Observability
+- [x] OpenTelemetry tracing (instrumentation.ts)
+- [x] Vercel Analytics integration
+- [x] Sentry error tracking and distributed tracing
+- [x] Sentry secrets moved to .env.local
 
 ### Testing & Documentation
 - [x] Playwright CLI integration

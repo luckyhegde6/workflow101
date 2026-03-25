@@ -6,13 +6,14 @@ A durable workflow system powered by **DBOS** + **Vercel** + **Next.js**.
 
 - **6 Workflow Types**: Example, Email, Data Processing, Onboarding, Scheduled Report, Webhook
 - **AI Workflows**: Sentiment analysis, summarization, categorization, entity extraction
-- **Workflow Scheduling**: Immediate, scheduled, or recurring with cron support
+- **Workflow Scheduling**: Immediate, scheduled, or recurring with cron + queue support
+- **Vercel Queues**: Reliable message processing with automatic retries
 - **Human-in-the-Loop**: Approve/reject pending workflow requests
 - **Step-by-Step Wizard**: 4-step workflow configuration (Select → Configure → Schedule → Confirm)
 - **Confirmation Popup**: Review before submitting workflows
 - **Audit Logging**: Track all workflow operations and state changes
 - **Dashboard UI**: Real-time workflow monitoring with status filtering
-- **Configuration Page**: Configure and run workflows with custom parameters
+- **Queue Monitoring**: View queue configuration and topics at `/queue`
 - **Cron Monitoring**: Monitor and control worker execution
 - **API Documentation**: Interactive Swagger UI at `/docs`
 - **Observability**: Workflow timeline, activity log, worker status monitoring, DBOS inspect commands, Supabase integration
@@ -21,7 +22,10 @@ A durable workflow system powered by **DBOS** + **Vercel** + **Next.js**.
 - **Workflow Chaining**: Compose workflows together
 - **HTTP Logging**: Middleware for logging all HTTP requests
 - **Database Logging**: Middleware for logging all database queries
-- **140+ Tests**: Unit, integration, and E2E coverage
+- **File Storage**: Vercel Blob integration for workflow file processing
+- **Analytics**: Vercel Analytics for web analytics
+- **Tracing**: OpenTelemetry integration with Sentry for distributed tracing
+- **150+ Tests**: Unit, integration, and E2E coverage
 
 ## Quick Start
 
@@ -89,6 +93,8 @@ npm run dev
 | `/` | Main dashboard with workflow list |
 | `/config` | 4-step workflow configuration wizard |
 | `/cron` | Monitor and control worker execution |
+| `/queue` | Queue monitoring and configuration |
+| `/files` | File upload with Vercel Blob |
 | `/docs` | Interactive API documentation (Swagger UI) |
 | `/observability` | Workflow timeline, activity log, worker status |
 | `/logs` | Application logs, HTTP logs, database logs |
@@ -122,10 +128,197 @@ npm run dev
 | `/api/schedules` | GET | List scheduled workflows |
 | `/api/schedules` | POST | Create scheduled workflow |
 | `/api/schedules/[id]` | DELETE | Cancel scheduled workflow |
+| `/api/cron/daily` | GET | Daily cron - collects scheduled workflows |
 | `/api/audit` | GET | Get audit logs |
 | `/api/logs` | GET | Get application/HTTP/database logs |
 | `/api/logs` | DELETE | Clear logs |
 | `/api/docs` | GET | Get OpenAPI specification |
+
+## Vercel Queues
+
+The system uses Vercel Queues for reliable workflow processing, addressing the daily cron limitation on free tier.
+
+### How It Works
+
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────────┐    ┌─────────────┐
+│   Cron      │───►│  Collect   │───►│  Publish to    │───►│  Queue      │
+│  (6 AM)     │    │  Due       │    │  workflows     │    │  Consumer   │
+└─────────────┘    │  Workflows │    │  queue         │    │  (process) │
+                   └─────────────┘    └─────────────────┘    └─────────────┘
+```
+
+### Queue Topics
+
+| Topic | Description |
+|-------|-------------|
+| `workflows` | Main workflow execution queue |
+| `scheduled-workflows` | Delayed workflow queue |
+| `email-notifications` | Email notification queue |
+| `approvals` | Approval queue |
+
+### Queue Configuration (vercel.json)
+
+```json
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily",
+      "schedule": "0 6 * * *"
+    }
+  ],
+  "functions": {
+    "app/api/queue/workflow/route.ts": {
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "workflows",
+          "retryAfterSeconds": 60
+        }
+      ]
+    }
+  }
+}
+```
+
+### Free Tier Limitations
+
+- Cron jobs: **once per day**
+- Queue sends: **4,000/month**
+- Retention: **24 hours**
+
+### Publishing to Queues
+
+```typescript
+import { publishWorkflow } from './lib/queue-producer';
+
+// Publish a workflow
+await publishWorkflow('exampleWorkflow', { param: 'value' }, {
+  source: 'manual',
+  idempotencyKey: 'unique-key-123'
+});
+```
+
+See [`/queue`](/queue) page for more details.
+
+## Vercel Blob
+
+The system includes Vercel Blob integration for file processing workflows.
+
+### Features
+
+- **Server-side uploads**: Upload files from API routes using `put()`
+- **Client-side uploads**: Direct browser-to-Blob uploads for better performance
+- **Progress tracking**: Monitor upload progress in real-time
+- **Multipart uploads**: Automatic support for large files
+- **Private storage**: Files are private by default, requiring authentication
+
+### Usage
+
+```typescript
+import { uploadBlob, listBlobs, deleteBlob } from './lib/blob-utils';
+
+// Upload a file
+const result = await uploadBlob(
+  'workflows/workflow-123/input.pdf',
+  fileBuffer,
+  'application/pdf',
+  'private'
+);
+
+// List workflow files
+const files = await listBlobs('workflows/workflow-123/');
+
+// Delete files
+await deleteBlob(result.url);
+```
+
+### Client-side Upload
+
+```typescript
+import { upload } from '@vercel/blob/client';
+
+const blob = await upload(file.name, file, {
+  access: 'private',
+  handleUploadUrl: '/api/blob',
+  onUploadProgress: (progress) => {
+    console.log(`${progress.percentage}% uploaded`);
+  },
+});
+```
+
+See [`/files`](/files) page for a complete example.
+
+### API Route
+
+The upload endpoint is at `/api/blob`:
+
+```typescript
+// app/api/blob/route.ts
+import { handleUpload } from '@vercel/blob/client';
+
+export async function POST(request: Request) {
+  const blob = await handleUpload({
+    request,
+    body: await request.json(),
+    onBeforeGenerateToken: async (pathname) => {
+      // Add authentication/authorization here
+      return {};
+    },
+    onUploadCompleted: async ({ blob }) => {
+      console.log('Uploaded:', blob.url);
+    },
+  });
+  return Response.json(blob);
+}
+```
+
+## Observability
+
+### OpenTelemetry Tracing
+
+The app includes OpenTelemetry tracing using `@vercel/otel`:
+
+```typescript
+// instrumentation.ts
+import { registerOTel } from '@vercel/otel';
+
+export function register() {
+  registerOTel({ serviceName: 'workflow101' });
+}
+```
+
+Traces are automatically exported to connected observability providers.
+
+### Vercel Analytics
+
+Web analytics is enabled in the root layout:
+
+```typescript
+import { Analytics } from '@vercel/analytics/react';
+
+// In layout.tsx
+<Analytics />
+```
+
+### Sentry Integration
+
+Sentry is configured for error tracking and distributed tracing:
+
+- **DSN**: Configured via `NEXT_PUBLIC_SENTRY_DSN`
+- **Auth Token**: For CI/CD deployments via `SENTRY_AUTH_TOKEN`
+- **Tracing**: OTLP endpoint via `SENTRY_OTLP_TRACES_URL`
+
+### Environment Variables
+
+```env
+# Sentry Configuration
+NEXT_PUBLIC_SENTRY_DSN="https://...@sentry.io/..."
+SENTRY_AUTH_TOKEN="your-auth-token"
+SENTRY_ORG="your-org"
+SENTRY_OTLP_TRACES_URL="https://.../otlp/v1/traces"
+SENTRY_PROJECT="your-project"
+```
 
 ## Logging
 

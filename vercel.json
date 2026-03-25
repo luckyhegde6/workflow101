@@ -2,8 +2,24 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
-      "path": "/api/dbos",
-      "schedule": "* * * * *"
+      "path": "/api/cron/daily",
+      "schedule": "0 6 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "app/api/queue/workflow/route.ts": {
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "workflows",
+          "retryAfterSeconds": 60
+        },
+        {
+          "type": "queue/v2beta",
+          "topic": "scheduled-workflows",
+          "retryAfterSeconds": 60
+        }
+      ]
+    }
+  }
 }

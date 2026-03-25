@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Vercel Blob Integration** (`app/lib/blob-utils.ts`)
+  - Server-side blob upload utilities
+  - `uploadBlob()`, `listBlobs()`, `deleteBlob()` functions
+  - Workflow file management helpers
+  - File upload page (`/files`)
+  - Client-side upload API route (`/api/blob`)
+  - Progress tracking for uploads
+
+- **Vercel Analytics**
+  - Installed `@vercel/analytics` package
+  - Analytics component in root layout
+  - Web analytics tracking enabled
+
+- **OpenTelemetry Tracing** (`instrumentation.ts`)
+  - Created `instrumentation.ts` for OpenTelemetry setup
+  - Uses `@vercel/otel` for Vercel integration
+  - Service name: `workflow101`
+  - Automatic context propagation
+
+- **Sentry Integration**
+  - Full Sentry configuration in environment variables
+  - Error tracking and distributed tracing
+  - OTLP endpoint for trace export
+  - Auth token for CI/CD deployments
+
 ### Security
 - **Pre-commit Security Hook** (`scripts/pre-commit-security.js`)
   - Automatic detection of hardcoded secrets
@@ -27,6 +54,16 @@ All notable changes to this project will be documented in this file.
   - Mitigation strategies documented
 
 ### Added
+- **Vercel Queues Integration**
+  - Queue producer utilities (`app/lib/queue-producer.ts`)
+  - Queue consumer route (`app/api/queue/workflow/route.ts`)
+  - Daily cron handler (`app/api/cron/daily/route.ts`)
+  - Queue monitoring page (`/queue`)
+  - Multiple queue topics: workflows, scheduled-workflows, email-notifications, approvals
+  - Automatic retries with exponential backoff
+  - Idempotency support for message deduplication
+  - Addresses Vercel free tier daily cron limitation
+
 - **Playwright CLI Integration** (E2E Testing)
   - Installed `@playwright/cli` globally
   - Skills installed to `.claude/skills/playwright-cli`
