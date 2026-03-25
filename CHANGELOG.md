@@ -19,6 +19,13 @@ All notable changes to this project will be documented in this file.
   - All database connections read from environment variables
   - AGENTS.md updated with security rules
 
+- **Known Vulnerability Disclosure**
+  - Created `SECURITY.md` documenting known vulnerabilities
+  - Transitive dependencies from `workflow` package (beta)
+  - Undici WebSocket vulnerabilities (pending upstream fix)
+  - Devaluate prototype pollution (pending upstream fix)
+  - Mitigation strategies documented
+
 ### Added
 - **Playwright CLI Integration** (E2E Testing)
   - Installed `@playwright/cli` globally
