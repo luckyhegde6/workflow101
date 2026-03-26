@@ -118,7 +118,7 @@ export async function listWorkflows(
         // Calculate runtime if completed
         let runtimeMs: number | undefined;
         if (wf.status === 'SUCCESS' || wf.status === 'ERROR') {
-          runtimeMs = wf.queuedAt ? Date.now() - wf.queuedAt : undefined;
+          runtimeMs = wf.dequeuedAt ? Date.now() - wf.dequeuedAt : undefined;
           if (runtimeMs) {
             trackWorkflowRuntime(wf.workflowName, runtimeMs, wf.status as WorkflowStatusType);
           }
