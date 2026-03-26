@@ -31,6 +31,19 @@ All notable changes to this project will be documented in this file.
   - OTLP endpoint for trace export
   - Auth token for CI/CD deployments
 
+- **Sentry Metrics**
+  - Created `app/lib/sentry-metrics.ts` with workflow tracking utilities
+  - Metrics: `workflow_status_count`, `workflow_runtime_ms`, `workflow_queue_depth`
+  - Metrics: `workflow_enqueued`, `workflow_type_count`, `workflow_scheduled`
+  - Metrics: `api_response_time_ms`, `database_operation_time_ms`
+  - Added Sentry Metrics tab to observability page
+
+- **Workflow Updates**
+  - Updated workflows to use native `sleep` from workflow package
+  - Added sleep delays for realistic workflow patterns (onboarding: 9s total)
+  - Created `/workflow-status` page for real-time workflow monitoring
+  - Queue page now links to workflow status and observability pages
+
 - **Vercel Configuration** (`vercel.json`)
   - Updated schema URL to `https://openapi.vercel.sh/vercel.json`
   - Queue triggers using `triggers` instead of `experimentalTriggers`

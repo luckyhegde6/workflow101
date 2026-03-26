@@ -70,7 +70,7 @@ export default function ObservabilityPage() {
     workflowsProcessed: 0,
     errors: 0,
   });
-  const [activeTab, setActiveTab] = useState<'overview' | 'inspect' | 'approvals' | 'supabase'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'inspect' | 'approvals' | 'supabase' | 'metrics'>('overview');
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
 
   const fetchWorkflows = useCallback(async () => {
@@ -275,6 +275,7 @@ export default function ObservabilityPage() {
               { id: 'overview', label: 'Overview', icon: '📈' },
               { id: 'inspect', label: 'DBOS Inspect', icon: '🔍' },
               { id: 'approvals', label: 'Approvals', icon: '✅' },
+              { id: 'metrics', label: 'Sentry Metrics', icon: '📊' },
               { id: 'supabase', label: 'Supabase', icon: '🗄️' },
             ].map((tab) => (
               <button
@@ -562,6 +563,119 @@ export default function ObservabilityPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'metrics' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <span>📊</span> Sentry Metrics Dashboard
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Real-time metrics tracking for workflow executions. View detailed metrics in the{' '}
+                <a href="https://sentry.io" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Sentry dashboard
+                </a>
+                .
+              </p>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-5 text-white">
+                  <div className="text-3xl font-bold">workflow_status_count</div>
+                  <div className="text-blue-100 mt-1">Counter</div>
+                  <div className="text-sm text-blue-200 mt-2">Tags: workflow_name, status</div>
+                </div>
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-5 text-white">
+                  <div className="text-3xl font-bold">workflow_runtime_ms</div>
+                  <div className="text-green-100 mt-1">Distribution</div>
+                  <div className="text-sm text-green-200 mt-2">Tags: workflow_name, status</div>
+                </div>
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-5 text-white">
+                  <div className="text-3xl font-bold">workflow_queue_depth</div>
+                  <div className="text-purple-100 mt-1">Gauge</div>
+                  <div className="text-sm text-purple-200 mt-2">Tags: workflow_name, queue_name</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Metrics Reference</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200 dark:border-gray-700">
+                        <th className="text-left py-3 px-4 font-semibold">Metric</th>
+                        <th className="text-left py-3 px-4 font-semibold">Type</th>
+                        <th className="text-left py-3 px-4 font-semibold">Description</th>
+                        <th className="text-left py-3 px-4 font-semibold">Tags</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      <tr>
+                        <td className="py-3 px-4 font-mono text-blue-600 dark:text-blue-400">workflow_status_count</td>
+                        <td className="py-3 px-4"><span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">Counter</span></td>
+                        <td className="py-3 px-4 text-gray-600 dark:text-gray-400">Total workflow executions by status</td>
+                        <td className="py-3 px-4 font-mono text-xs text-gray-500">workflow_name, status</td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4 font-mono text-green-600 dark:text-green-400">workflow_runtime_ms</td>
+                        <td className="py-3 px-4"><span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-xs">Distribution</span></td>
+                        <td className="py-3 px-4 text-gray-600 dark:text-gray-400">Workflow execution duration</td>
+                        <td className="py-3 px-4 font-mono text-xs text-gray-500">workflow_name, status</td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4 font-mono text-purple-600 dark:text-purple-400">workflow_queue_depth</td>
+                        <td className="py-3 px-4"><span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-xs">Gauge</span></td>
+                        <td className="py-3 px-4 text-gray-600 dark:text-gray-400">Current pending workflows</td>
+                        <td className="py-3 px-4 font-mono text-xs text-gray-500">workflow_name, status</td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4 font-mono text-yellow-600 dark:text-yellow-400">workflow_enqueued</td>
+                        <td className="py-3 px-4"><span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded text-xs">Counter</span></td>
+                        <td className="py-3 px-4 text-gray-600 dark:text-gray-400">New workflow enqueues</td>
+                        <td className="py-3 px-4 font-mono text-xs text-gray-500">workflow_name, queue_name</td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4 font-mono text-orange-600 dark:text-orange-400">workflow_type_count</td>
+                        <td className="py-3 px-4"><span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded text-xs">Counter</span></td>
+                        <td className="py-3 px-4 text-gray-600 dark:text-gray-400">Workflow type distribution</td>
+                        <td className="py-3 px-4 font-mono text-xs text-gray-500">workflow_name, schedule_type</td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4 font-mono text-red-600 dark:text-red-400">workflow_scheduled</td>
+                        <td className="py-3 px-4"><span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-xs">Counter</span></td>
+                        <td className="py-3 px-4 text-gray-600 dark:text-gray-400">Scheduled workflow creations</td>
+                        <td className="py-3 px-4 font-mono text-xs text-gray-500">workflow_name, schedule_type</td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4 font-mono text-indigo-600 dark:text-indigo-400">api_response_time_ms</td>
+                        <td className="py-3 px-4"><span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded text-xs">Distribution</span></td>
+                        <td className="py-3 px-4 text-gray-600 dark:text-gray-400">API endpoint response times</td>
+                        <td className="py-3 px-4 font-mono text-xs text-gray-500">endpoint, method, status_class</td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4 font-mono text-cyan-600 dark:text-cyan-400">database_operation_time_ms</td>
+                        <td className="py-3 px-4"><span className="px-2 py-1 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded text-xs">Distribution</span></td>
+                        <td className="py-3 px-4 text-gray-600 dark:text-gray-400">Database query durations</td>
+                        <td className="py-3 px-4 font-mono text-xs text-gray-500">operation, success</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white">
+              <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                <span>📈</span> Viewing Metrics in Sentry
+              </h3>
+              <ul className="space-y-2 text-indigo-100">
+                <li>• Go to the <strong>Metrics</strong> section in your Sentry dashboard</li>
+                <li>• Use the metric explorer to visualize workflow performance</li>
+                <li>• Create alerts based on error rates or latency thresholds</li>
+                <li>• Filter by tags like <code className="bg-white/20 px-2 py-0.5 rounded">workflow_name</code> or <code className="bg-white/20 px-2 py-0.5 rounded">status</code></li>
+              </ul>
             </div>
           </div>
         )}

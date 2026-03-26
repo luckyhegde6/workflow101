@@ -94,9 +94,10 @@ npm run dev
 | `/config` | 4-step workflow configuration wizard |
 | `/cron` | Monitor and control worker execution |
 | `/queue` | Queue monitoring and configuration |
+| `/workflow-status` | Real-time workflow execution status and queue depth |
 | `/files` | File upload with Vercel Blob |
 | `/docs` | Interactive API documentation (Swagger UI) |
-| `/observability` | Workflow timeline, activity log, worker status |
+| `/observability` | Workflow timeline, activity log, worker status, Sentry metrics |
 | `/logs` | Application logs, HTTP logs, database logs |
 | `/about` | About the project, features, and tech stack |
 | `/contact` | Contact form and support information |

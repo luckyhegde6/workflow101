@@ -203,28 +203,21 @@ function QueueInfoContent() {
       {/* Configuration */}
       <section>
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Configuration (vercel.json)
+          Configuration (Vercel UI)
         </h2>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+          Queue triggers are configured through Vercel Dashboard → Storage → Queues.
+          Queue consumers are defined in the function that processes queue messages.
+        </p>
         <pre className="bg-gray-900 text-green-400 p-4 rounded-xl text-sm font-mono overflow-x-auto">
-{`{
-  "crons": [
-    {
-      "path": "/api/cron/daily",
-      "schedule": "0 6 * * *"  // 6 AM daily
-    }
-  ],
-  "functions": {
-    "app/api/queue/workflow/route.ts": {
-      "experimentalTriggers": [
-        {
-          "type": "queue/v2beta",
-          "topic": "workflows",
-          "retryAfterSeconds": 60
-        }
-      ]
-    }
-  }
-}`}
+{`// app/api/queue/workflow/route.ts
+import { Queue } from '@vercel/queue';
+
+const workflowQueue = new Queue('workflows', async (job) => {
+  const { workflowName, params } = job.data;
+  // Process the workflow
+  console.log('Processing workflow:', workflowName);
+});`}
         </pre>
       </section>
 
@@ -233,7 +226,29 @@ function QueueInfoContent() {
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
           Monitoring Resources
         </h2>
-        <div className="space-y-3">
+        <div className="grid md:grid-cols-3 gap-4">
+          <a
+            href="/workflow-status"
+            className="block p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl text-white hover:shadow-lg transition-all"
+          >
+            <h3 className="font-medium mb-1">
+              Workflow Status →
+            </h3>
+            <p className="text-sm text-blue-100">
+              Real-time workflow execution monitoring
+            </p>
+          </a>
+          <a
+            href="/observability"
+            className="block p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
+          >
+            <h3 className="font-medium text-blue-600 dark:text-blue-400 mb-1">
+              Observability →
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Full monitoring dashboard with Sentry metrics
+            </p>
+          </a>
           <a
             href="https://vercel.com/docs/queues"
             target="_blank"
@@ -241,23 +256,10 @@ function QueueInfoContent() {
             className="block p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
           >
             <h3 className="font-medium text-blue-600 dark:text-blue-400 mb-1">
-              Vercel Queues Documentation →
+              Vercel Queues Docs →
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              Official documentation for Vercel Queues
-            </p>
-          </a>
-          <a
-            href="https://vercel.com/docs/queues/concepts"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
-          >
-            <h3 className="font-medium text-blue-600 dark:text-blue-400 mb-1">
-              Queue Concepts →
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              Understand topics, consumers, retries, and at-least-once delivery
+              Official Vercel Queues documentation
             </p>
           </a>
         </div>

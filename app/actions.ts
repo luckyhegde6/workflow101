@@ -1,9 +1,18 @@
 'use server';
 
+import * as Sentry from '@sentry/nextjs';
 import { DBOSClient, WorkflowStatus } from '@dbos-inc/dbos-sdk';
 import { ScheduleConfig, AuditEntry, SCHEDULE_TYPES } from './lib/scheduling';
 import { getDatabaseConfig, getEnvironmentInfo } from './lib/database-config';
 import { randomUUID } from 'crypto';
+import {
+  trackWorkflowEnqueue,
+  trackWorkflowStatus,
+  trackWorkflowRuntime,
+  trackWorkflowType,
+  trackWorkflowComplete,
+  trackQueueDepth,
+} from './lib/sentry-metrics';
 
 export type WorkflowStatusType = 'SUCCESS' | 'PENDING' | 'ENQUEUED' | 'ERROR';
 
@@ -13,6 +22,7 @@ export interface WorkflowInfo {
   status: WorkflowStatusType;
   createdAt: number;
   completedAt?: number;
+  runtimeMs?: number;
 }
 
 export interface WorkflowResult {
@@ -46,10 +56,15 @@ async function withClient<T>(callback: (client: DBOSClient) => Promise<T>): Prom
 
 export async function enqueueWorkflow(
   workflowName: string,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  metadata?: Record<string, string | number>
 ): Promise<{ success: boolean; workflowId?: string; error?: string }> {
+  const startTime = Date.now();
   try {
     console.log(`Enqueueing workflow: ${workflowName}`, params);
+    
+    // Track workflow type
+    trackWorkflowType(workflowName, metadata);
     
     return await withClient(async (client) => {
       const result = await client.enqueue({
@@ -57,10 +72,24 @@ export async function enqueueWorkflow(
         queueName,
       });
       
+      const duration = Date.now() - startTime;
+      
+      // Track metrics
+      trackWorkflowEnqueue(workflowName, queueName, metadata);
+      trackWorkflowStatus(workflowName, 'ENQUEUED', metadata);
+      trackQueueDepth(queueName, 1);
+      trackWorkflowRuntime(workflowName, duration, 'ENQUEUED', metadata);
+      
       console.log('Workflow enqueued:', result);
       return { success: true, workflowId: String(result) };
     });
   } catch (error) {
+    const duration = Date.now() - startTime;
+    
+    // Track error metrics
+    trackWorkflowStatus(workflowName, 'ERROR', { ...metadata, error_type: 'enqueue_failed' });
+    trackWorkflowComplete(workflowName, false, duration, error instanceof Error ? error.message : 'Unknown error', metadata);
+    
     console.error('Failed to enqueue workflow:', error);
     return { 
       success: false, 
@@ -72,6 +101,7 @@ export async function enqueueWorkflow(
 export async function listWorkflows(
   workflowName?: string
 ): Promise<{ success: boolean; workflows?: WorkflowInfo[]; error?: string }> {
+  const startTime = Date.now();
   try {
     console.log('Listing workflows:', workflowName);
     
@@ -81,12 +111,33 @@ export async function listWorkflows(
         sortDesc: true,
       });
       
-      const workflows: WorkflowInfo[] = results.map((wf) => ({
-        workflowId: wf.workflowID,
-        workflowName: wf.workflowName,
-        status: wf.status as WorkflowStatusType,
-        createdAt: wf.createdAt,
-      }));
+      const workflows: WorkflowInfo[] = results.map((wf) => {
+        // Track status distribution for monitoring
+        trackWorkflowStatus(wf.workflowName, wf.status as WorkflowStatusType);
+        
+        // Calculate runtime if completed
+        let runtimeMs: number | undefined;
+        if (wf.status === 'SUCCESS' || wf.status === 'ERROR') {
+          runtimeMs = wf.queuedAt ? Date.now() - wf.queuedAt : undefined;
+          if (runtimeMs) {
+            trackWorkflowRuntime(wf.workflowName, runtimeMs, wf.status as WorkflowStatusType);
+          }
+        }
+        
+        return {
+          workflowId: wf.workflowID,
+          workflowName: wf.workflowName,
+          status: wf.status as WorkflowStatusType,
+          createdAt: wf.createdAt,
+          runtimeMs,
+        };
+      });
+      
+      // Track queue depth
+      const pendingCount = workflows.filter(w => w.status === 'PENDING' || w.status === 'ENQUEUED').length;
+      if (pendingCount > 0) {
+        trackQueueDepth(queueName, pendingCount);
+      }
       
       return { success: true, workflows };
     });
@@ -203,6 +254,13 @@ export async function scheduleWorkflow(
     const auditId = randomUUID();
     const now = new Date();
     
+    const metadata: Record<string, string | number> = {
+      schedule_type: config?.type || SCHEDULE_TYPES.IMMEDIATE,
+    };
+    
+    // Track schedule type
+    trackWorkflowType(workflowName, metadata);
+    
     const auditEntry: AuditEntry = {
       id: auditId,
       timestamp: now,
@@ -219,8 +277,16 @@ export async function scheduleWorkflow(
     auditLogStore.push(auditEntry);
     
     if (config?.type === SCHEDULE_TYPES.IMMEDIATE) {
-      return await enqueueWorkflow(workflowName, params);
+      return await enqueueWorkflow(workflowName, params, metadata);
     }
+    
+    // Track scheduled workflow
+    Sentry.metrics.incr('workflow_scheduled', 1, {
+      tags: {
+        workflow_name: workflowName,
+        schedule_type: config?.type || 'immediate',
+      },
+    });
     
     return { success: true, auditId };
   } catch (error) {

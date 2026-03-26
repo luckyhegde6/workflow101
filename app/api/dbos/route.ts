@@ -1,22 +1,19 @@
 import { DBOS, WorkflowQueue } from '@dbos-inc/dbos-sdk';
 import { waitUntil } from '@vercel/functions';
+import { sleep } from 'workflow';
 import { getDatabaseConfig, getEnvironmentInfo } from '../../lib/database-config';
 
 const queue = new WorkflowQueue('exampleQueue');
-
-async function sleepStep(seconds: number) {
-  await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
-}
 
 async function exampleWorkflow(message: string) {
   'use workflow';
   
   DBOS.logger.info(`Starting workflow with message: ${message}`);
   
-  await sleepStep(1);
+  await sleep('1s');
   DBOS.logger.info('Step 1 completed');
   
-  await sleepStep(1);
+  await sleep('1s');
   DBOS.logger.info('Step 2 completed');
   
   DBOS.logger.info('Workflow completed successfully');
@@ -32,10 +29,10 @@ async function emailNotificationWorkflow(params: {
   
   DBOS.logger.info(`Sending email to ${params.to}`);
   
-  await sleepStep(1);
+  await sleep('1s');
   DBOS.logger.info('Email content validated');
   
-  await sleepStep(1);
+  await sleep('1s');
   DBOS.logger.info('Email sent successfully');
   
   return { 
@@ -53,13 +50,13 @@ async function dataProcessingWorkflow(params: {
   
   DBOS.logger.info(`Processing data: ${params.dataId} with operation: ${params.operation}`);
   
-  await sleepStep(1);
+  await sleep('1s');
   DBOS.logger.info('Data fetched');
   
-  await sleepStep(1);
+  await sleep('1s');
   DBOS.logger.info('Data processed');
   
-  await sleepStep(1);
+  await sleep('1s');
   DBOS.logger.info('Results stored');
   
   return { 
@@ -78,13 +75,13 @@ async function onboardingWorkflow(params: {
   
   DBOS.logger.info(`Starting onboarding for user: ${params.userId}`);
   
-  await sleepStep(1);
+  await sleep('5s');
   DBOS.logger.info('Welcome email sent');
   
-  await sleepStep(1);
+  await sleep('1s');
   DBOS.logger.info('Account created');
   
-  await sleepStep(1);
+  await sleep('3s');
   DBOS.logger.info('Onboarding completed');
   
   return { 
@@ -102,10 +99,10 @@ async function scheduledReportWorkflow(params: {
   
   DBOS.logger.info(`Generating ${params.reportType} report`);
   
-  await sleepStep(2);
+  await sleep('2s');
   DBOS.logger.info('Report generated');
   
-  await sleepStep(1);
+  await sleep('1s');
   DBOS.logger.info('Report sent to recipients');
   
   return { 
@@ -124,10 +121,10 @@ async function webhookHandlerWorkflow(params: {
   
   DBOS.logger.info(`Processing webhook event: ${params.eventType}`);
   
-  await sleepStep(1);
+  await sleep('1s');
   DBOS.logger.info('Payload validated');
   
-  await sleepStep(1);
+  await sleep('1s');
   DBOS.logger.info('Event processed');
   
   return { 
