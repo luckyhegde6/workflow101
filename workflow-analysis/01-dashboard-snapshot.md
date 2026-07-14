@@ -1,0 +1,139 @@
+- generic [active] [ref=f74e1]:
+  - navigation [ref=f74e2]:
+    - generic [ref=f74e5]:
+      - link "⚡ Workflow101" [ref=f74e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f74e7]: ⚡
+        - generic [ref=f74e8]: Workflow101
+      - generic [ref=f74e9]:
+        - link "📊 Dashboard" [ref=f74e10] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f74e11]: 📊
+          - generic [ref=f74e12]: Dashboard
+        - link "⚙️ Config" [ref=f74e13] [cursor=pointer]:
+          - /url: /config
+          - generic [ref=f74e14]: ⚙️
+          - generic [ref=f74e15]: Config
+        - link "✅ Approvals" [ref=f74e16] [cursor=pointer]:
+          - /url: /approvals
+          - generic [ref=f74e17]: ✅
+          - generic [ref=f74e18]: Approvals
+        - link "⏰ Cron" [ref=f74e19] [cursor=pointer]:
+          - /url: /cron
+          - generic [ref=f74e20]: ⏰
+          - generic [ref=f74e21]: Cron
+        - link "📈 Monitor" [ref=f74e22] [cursor=pointer]:
+          - /url: /observability
+          - generic [ref=f74e23]: 📈
+          - generic [ref=f74e24]: Monitor
+        - link "📋 Logs" [ref=f74e25] [cursor=pointer]:
+          - /url: /logs
+          - generic [ref=f74e26]: 📋
+          - generic [ref=f74e27]: Logs
+        - link "📖 Docs" [ref=f74e28] [cursor=pointer]:
+          - /url: /docs
+          - generic [ref=f74e29]: 📖
+          - generic [ref=f74e30]: Docs
+        - link "ℹ️ About" [ref=f74e31] [cursor=pointer]:
+          - /url: /about
+          - generic [ref=f74e32]: ℹ️
+          - generic [ref=f74e33]: About
+        - link "✉️ Contact" [ref=f74e34] [cursor=pointer]:
+          - /url: /contact
+          - generic [ref=f74e35]: ✉️
+          - generic [ref=f74e36]: Contact
+  - main [ref=f74e37]:
+    - generic [ref=f74e39]:
+      - generic [ref=f74e40]:
+        - heading "Everything Workflows" [level=1] [ref=f74e41]
+        - paragraph [ref=f74e42]: Durable background workflows powered by DBOS + Vercel
+      - generic [ref=f74e43]:
+        - generic [ref=f74e44]:
+          - generic [ref=f74e45]:
+            - heading "Quick Enqueue" [level=2] [ref=f74e46]
+            - generic [ref=f74e47]:
+              - generic [ref=f74e48]:
+                - generic [ref=f74e49]: Select Workflow
+                - combobox "Select Workflow" [ref=f74e50]:
+                  - option "Example Workflow" [selected]
+                  - option "Email Notification"
+                  - option "Data Processing"
+                  - option "User Onboarding"
+                  - option "Scheduled Report"
+                  - option "Webhook Handler"
+                - paragraph [ref=f74e51]: Basic workflow for testing
+              - button [ref=f74e52]
+          - link "Cron Control Worker scheduling" [ref=f74e56] [cursor=pointer]:
+            - /url: /cron
+            - generic [ref=f74e61]:
+              - generic [ref=f74e62]: Cron Control
+              - generic [ref=f74e63]: Worker scheduling
+        - generic [ref=f74e65]:
+          - generic [ref=f74e66]:
+            - generic [ref=f74e67]:
+              - heading "Workflows" [level=2] [ref=f74e68]
+              - generic [ref=f74e69]: Auto-updating
+            - paragraph [ref=f74e71]: 3 workflows found
+            - paragraph [ref=f74e88]: "Last updated: 3:58:07 AM"
+          - generic [ref=f74e73]:
+            - generic [ref=f74e89]:
+              - generic [ref=f74e90]:
+                - heading "Filter by Status" [level=3] [ref=f74e91]
+                - generic [ref=f74e92]:
+                  - button "All" [disabled] [ref=f74e93]
+                  - generic [ref=f74e94]: "|"
+                  - button "None" [ref=f74e95]
+              - generic [ref=f74e96]:
+                - button "Success 0" [ref=f74e97]:
+                  - generic [ref=f74e99]: Success
+                  - generic [ref=f74e100]: "0"
+                - button "Pending 0" [ref=f74e101]:
+                  - generic [ref=f74e103]: Pending
+                  - generic [ref=f74e104]: "0"
+                - button "Enqueued 0" [ref=f74e105]:
+                  - generic [ref=f74e107]: Enqueued
+                  - generic [ref=f74e108]: "0"
+                - button "Error 3" [ref=f74e109]:
+                  - generic [ref=f74e111]: Error
+                  - generic [ref=f74e112]: "3"
+            - paragraph [ref=f74e114]: Showing 3 of 3 workflows
+            - generic [ref=f74e115]:
+              - generic [ref=f74e118] [cursor=pointer]:
+                - generic [ref=f74e119]:
+                  - generic [ref=f74e120]:
+                    - generic [ref=f74e121]: Workflow ID
+                    - generic [ref=f74e122]: exampleWorkflow
+                  - paragraph [ref=f74e123]: afbea554-6c70-4028-9cb3-10a3acc13e54
+                  - generic [ref=f74e124]: Started Jul 15, 2026, 03:49 AM
+                - generic [ref=f74e128]:
+                  - generic [ref=f74e129]:
+                    - generic [ref=f74e130]: ✗
+                    - text: ERROR
+                  - button "Retry" [ref=f74e131]
+              - generic [ref=f74e134] [cursor=pointer]:
+                - generic [ref=f74e135]:
+                  - generic [ref=f74e136]:
+                    - generic [ref=f74e137]: Workflow ID
+                    - generic [ref=f74e138]: exampleWorkflow
+                  - paragraph [ref=f74e139]: be2faa63-ac8e-450e-80ef-0ec9821b9d28
+                  - generic [ref=f74e140]: Started Jul 15, 2026, 03:49 AM
+                - generic [ref=f74e144]:
+                  - generic [ref=f74e145]:
+                    - generic [ref=f74e146]: ✗
+                    - text: ERROR
+                  - button "Retry" [ref=f74e147]
+              - generic [ref=f74e150] [cursor=pointer]:
+                - generic [ref=f74e151]:
+                  - generic [ref=f74e152]:
+                    - generic [ref=f74e153]: Workflow ID
+                    - generic [ref=f74e154]: exampleWorkflow
+                  - paragraph [ref=f74e155]: eb3fe09e-60c1-4a12-b64f-beb243b71b03
+                  - generic [ref=f74e156]: Started Jul 15, 2026, 03:48 AM
+                - generic [ref=f74e160]:
+                  - generic [ref=f74e161]:
+                    - generic [ref=f74e162]: ✗
+                    - text: ERROR
+                  - button "Retry" [ref=f74e163]
+      - generic [ref=f74e78]: Powered by DBOS • Built with Next.js • Tested with Playwright
+  - button "Open Next.js Dev Tools" [ref=f74e84] [cursor=pointer]
+  - alert [ref=f74e164]

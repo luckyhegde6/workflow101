@@ -1,163 +1,65 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getDatabaseConfig, getEnvironmentInfo, isSupabaseConfigured, type DatabaseProvider } from '../../app/lib/database-config';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { getDatabaseConfig, getEnvironmentInfo } from '../../app/lib/database-config';
 
-describe('Database Configuration', () => {
-  const originalEnv = process.env;
-
-  beforeEach(() => {
-    vi.resetModules();
-    process.env = { ...originalEnv };
-  });
-
+describe('Database Configuration (Local PostgreSQL)', () => {
   afterEach(() => {
-    process.env = originalEnv;
+    vi.restoreAllMocks();
   });
 
-  describe('USE_REMOTE=true', () => {
-    it('should use Supabase when USE_REMOTE=true', () => {
-      process.env.USE_REMOTE = 'true';
-      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-      process.env.SUPABASE_DB_PASSWORD = 'test-password';
-      
+  describe('getDatabaseConfig', () => {
+    it('should return local provider with isRemote=false', () => {
       const config = getDatabaseConfig();
-      
-      expect(config.provider).toBe('supabase');
-      expect(config.isRemote).toBe(true);
-      expect(config.url).toContain('supabase.co');
-    });
 
-    it('should return correct reason when USE_REMOTE=true', () => {
-      process.env.USE_REMOTE = 'true';
-      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-      
-      const info = getEnvironmentInfo();
-      
-      expect(info.reason).toBe('USE_REMOTE=true explicitly enabled Supabase');
-    });
-  });
-
-  describe('USE_REMOTE=false', () => {
-    it('should use local PostgreSQL when USE_REMOTE=false', () => {
-      process.env.USE_REMOTE = 'false';
-      process.env.DBOS_SYSTEM_DATABASE_URL = 'postgresql://localhost:5432/test';
-      
-      const config = getDatabaseConfig();
-      
       expect(config.provider).toBe('local');
       expect(config.isRemote).toBe(false);
     });
 
-    it('should return correct reason when USE_REMOTE=false', () => {
-      process.env.USE_REMOTE = 'false';
-      
-      const info = getEnvironmentInfo();
-      
-      expect(info.reason).toBe('USE_REMOTE=false explicitly disabled Supabase');
-    });
-  });
+    it('should use DBOS_SYSTEM_DATABASE_URL when set', () => {
+      const original = process.env.DBOS_SYSTEM_DATABASE_URL;
+      process.env.DBOS_SYSTEM_DATABASE_URL = 'postgresql://localhost:5432/test';
+      vi.stubEnv('DBOS_SYSTEM_DATABASE_URL', 'postgresql://localhost:5432/test');
 
-  describe('ENVIRONMENT=production', () => {
-    it('should use Supabase when ENVIRONMENT=production and no USE_REMOTE override', () => {
-      process.env.ENVIRONMENT = 'production';
-      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-      process.env.SUPABASE_DB_PASSWORD = 'test-password';
-      
       const config = getDatabaseConfig();
-      
-      expect(config.provider).toBe('supabase');
+
+      expect(config.url).toBe('postgresql://localhost:5432/test');
+
+      process.env.DBOS_SYSTEM_DATABASE_URL = original;
     });
 
-    it('should return correct reason for ENVIRONMENT=production', () => {
-      process.env.ENVIRONMENT = 'production';
-      
-      const info = getEnvironmentInfo();
-      
-      expect(info.reason).toBe('ENVIRONMENT=production defaults to Supabase');
-    });
+    it('should fall back to POSTGRES_URL_NON_POOLING', () => {
+      vi.stubEnv('DBOS_SYSTEM_DATABASE_URL', '');
+      vi.stubEnv('POSTGRES_URL_NON_POOLING', 'postgresql://fallback:5432/db');
 
-    it('should allow USE_REMOTE=false to override ENVIRONMENT=production', () => {
-      process.env.ENVIRONMENT = 'production';
-      process.env.USE_REMOTE = 'false';
-      
       const config = getDatabaseConfig();
-      
-      expect(config.provider).toBe('local');
-    });
-  });
 
-  describe('ENVIRONMENT=local', () => {
-    it('should use local PostgreSQL when ENVIRONMENT=local and no USE_REMOTE override', () => {
-      process.env.ENVIRONMENT = 'local';
-      
+      expect(config.url).toBe('postgresql://fallback:5432/db');
+    });
+
+    it('should use default connection string as final fallback', () => {
+      vi.stubEnv('DBOS_SYSTEM_DATABASE_URL', '');
+      vi.stubEnv('POSTGRES_URL_NON_POOLING', '');
+      vi.stubEnv('DATABASE_URL', '');
+
       const config = getDatabaseConfig();
-      
-      expect(config.provider).toBe('local');
-    });
 
-    it('should return correct reason for ENVIRONMENT=local', () => {
-      process.env.ENVIRONMENT = 'local';
-      
-      const info = getEnvironmentInfo();
-      
-      expect(info.reason).toBe('ENVIRONMENT=local defaults to local PostgreSQL');
-    });
-
-    it('should allow USE_REMOTE=true to override ENVIRONMENT=local', () => {
-      process.env.ENVIRONMENT = 'local';
-      process.env.USE_REMOTE = 'true';
-      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-      process.env.SUPABASE_DB_PASSWORD = 'test-password';
-      
-      const config = getDatabaseConfig();
-      
-      expect(config.provider).toBe('supabase');
-    });
-  });
-
-  describe('Default behavior (no ENVIRONMENT, no USE_REMOTE)', () => {
-    it('should default to local PostgreSQL for development', () => {
-      Object.defineProperty(process.env, 'NODE_ENV', {
-        value: 'development',
-        writable: true,
-        configurable: true
-      });
-      
-      const config = getDatabaseConfig();
-      
-      expect(config.provider).toBe('local');
-    });
-  });
-
-  describe('isSupabaseConfigured', () => {
-    it('should return false when Supabase URL is not set', () => {
-      delete process.env.NEXT_PUBLIC_SUPABASE_URL;
-      delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
-      
-      expect(isSupabaseConfigured()).toBe(false);
-    });
-
-    it('should return true when Supabase is configured', () => {
-      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY = 'test-key';
-      
-      expect(isSupabaseConfigured()).toBe(true);
+      expect(config.url).toBe(
+        'postgresql://postgres:postgres@localhost:5432/workflow101'
+      );
     });
   });
 
   describe('getEnvironmentInfo', () => {
-    it('should return complete environment information', () => {
-      process.env.ENVIRONMENT = 'production';
-      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-      
+    it('should return environment info with local config', () => {
       const info = getEnvironmentInfo();
-      
-      expect(info).toHaveProperty('environment');
-      expect(info).toHaveProperty('useRemoteOverride');
-      expect(info).toHaveProperty('provider');
+
+      expect(info).toHaveProperty('environment', 'local');
+      expect(info).toHaveProperty('useRemoteOverride', false);
+      expect(info).toHaveProperty('provider', 'local');
       expect(info).toHaveProperty('url');
-      expect(info).toHaveProperty('isRemote');
+      expect(info).toHaveProperty('isRemote', false);
       expect(info).toHaveProperty('reason');
-      expect(info).toHaveProperty('supabaseConfigured');
+      expect(info).toHaveProperty('supabaseConfigured', false);
+      expect(info.reason).toContain('Local PostgreSQL only');
     });
   });
 });

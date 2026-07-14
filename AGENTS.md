@@ -69,34 +69,45 @@ export async function GET(request: Request) {
 
 ## Database Configuration
 
-The system supports both local PostgreSQL (Docker) and Supabase remote database:
+The system now uses **local PostgreSQL only** (Supabase project was deleted).
 
 ### Environment Variables
 | Variable | Description |
 |----------|-------------|
-| `ENVIRONMENT` | `local` \| `production` \| `development` |
-| `USE_REMOTE` | `true` \| `false` (overrides ENVIRONMENT) |
+| `DBOS_SYSTEM_DATABASE_URL` | PostgreSQL connection string for DBOS |
+| `POSTGRES_URL_NON_POOLING` | PostgreSQL connection string |
+| `DATABASE_URL` | PostgreSQL connection string (fallback) |
 
-### Decision Logic
-1. `USE_REMOTE=true` → Use Supabase (remote)
-2. `USE_REMOTE=false` → Use local PostgreSQL
-3. `ENVIRONMENT=production` → Use Supabase (unless `USE_REMOTE=false`)
-4. `ENVIRONMENT=local` → Use local PostgreSQL (unless `USE_REMOTE=true`)
+### Connection Order
+The system tries these variables in order:
+1. `DBOS_SYSTEM_DATABASE_URL`
+2. `POSTGRES_URL_NON_POOLING`
+3. `DATABASE_URL`
+4. Falls back to `postgresql://postgres:postgres@localhost:5432/workflow101`
 
-### Usage
-```typescript
-import { getDatabaseConfig, getEnvironmentInfo } from './lib/database-config';
+### Database Layer
+- **`app/lib/db.ts`** - PostgreSQL connection pool and query helpers
+  - `query()` - Execute SQL, returns rows
+  - `queryOne()` - Execute SQL, returns single row or null
+  - `initializeDatabase()` - Creates tables/indexes on first use
+- **`app/lib/services.ts`** - Business logic layer (insert/query workflow data)
+- **`app/lib/observability.ts`** - Observability queries (dashboard data)
+- **`app/lib/database-config.ts`** - Simplified config (always returns local)
 
-const dbConfig = getDatabaseConfig();
-console.log(`Using ${dbConfig.provider} database: ${dbConfig.isRemote ? 'remote' : 'local'}`);
+### Running Locally
+```bash
+# Start PostgreSQL
+npm run db:up
 
-const info = getEnvironmentInfo();
-console.log(`Reason: ${info.reason}`);
+# Initialize DBOS tables
+npm run dbos:init
+
+# Start dev server
+npm run dev
+
+# Or all at once:
+npm run local
 ```
-
-### Files
-- `app/lib/database-config.ts` - Database configuration module
-- `.env` - Environment variable definitions
 
 <!-- END:workflow101-project-rules -->
 
@@ -287,21 +298,37 @@ Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`
 | `USE_REMOTE` | `true` \| `false` (overrides ENVIRONMENT) |
 | `DBOS_SYSTEM_DATABASE_URL` | PostgreSQL connection string for DBOS |
 | `POSTGRES_URL_NON_POOLING` | PostgreSQL connection string |
+| `DATABASE_URL` | PostgreSQL connection string (fallback) |
 
-### Supabase
-| Variable | Description |
-|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | Supabase publishable key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-side only) |
-| `SUPABASE_DB_URL` | Direct database connection URL |
-| `SUPABASE_DB_PASSWORD` | Database connection password |
+### Supabase (REMOVED - Project Deleted)
+Supabase project `vclwajxnqslrwkwkhwrw` was deleted (was in paused/unresumable state).  
+All Supabase dependencies and utilities have been removed from the project.  
+System now uses **local PostgreSQL only**.
 
 ### Decision Logic
-1. `USE_REMOTE=true` → Use Supabase (remote)
-2. `USE_REMOTE=false` → Use local PostgreSQL
-3. `ENVIRONMENT=production` → Use Supabase (unless `USE_REMOTE=false`)
-4. `ENVIRONMENT=local` → Use local PostgreSQL (unless `USE_REMOTE=true`)
+- `USE_REMOTE=false` (or not set) → Use local PostgreSQL
+- All configurations now return local PostgreSQL
+
+## Node_modules Corruption Recovery
+
+If `node_modules/` is corrupted (0-byte files, missing subpaths, "Invalid Version" errors):
+
+1. **Identify corrupted packages**: `npm ls <package>` shows `invalid` status
+2. **Don't delete node_modules** - On Windows, `rmdir /s /q node_modules` can hang due to antivirus
+3. **Use temp directory installs**:
+   ```bash
+   cd /d "%TEMP%"
+   mkdir fix-pkg && cd fix-pkg
+   npm init -y >nul 2>&1
+   npm install <corrupted-package>
+   xcopy /E /I /Y "%TEMP%\fix-pkg\node_modules\<pkg>\*" ".\node_modules\<pkg>\"
+   ```
+4. **Delete corrupted `package-lock.json`** if npm install fails with "Invalid Version":
+   ```bash
+   del package-lock.json
+   npm install --legacy-peer-deps
+   ```
+5. **Check for 0-byte files**: `for /r "node_modules" %i in (*.js) do if %~zi equ 0 echo %i`
 
 ## Important Commands
 
@@ -385,6 +412,52 @@ CREATE TABLE workflow_executions (
   retry_count INT DEFAULT 0
 );
 ```
+
+## OpenCode Agent Orchestrator
+
+The project uses an OpenCode-based agent orchestrator with self-learning feedback loops.
+
+### Agent Registry (opencode.json)
+
+| Agent ID | Command | Capabilities | Max Tokens |
+|----------|---------|--------------|------------|
+| `planner` | plan | read, search, think | 4000 |
+| `tdd-guide` | tdd | read, write, test | 6000 |
+| `code-reviewer` | code-review | read, search, think | 4000 |
+| `e2e-runner` | e2e | read, test, browser | 4000 |
+| `build-resolver` | build-fix | read, write, test | 6000 |
+| `security-reviewer` | security | read, search, think | 4000 |
+
+### Knowledge Base (`.opencode/instructions/`)
+
+| File | Purpose |
+|------|---------|
+| `project-context.md` | Project overview, tech stack, current state |
+| `lessons.md` | Compiled lessons from past sessions |
+| `patterns.md` | Reusable code patterns with examples |
+| `error-solutions.md` | Common errors with proven solutions |
+
+### Self-Learning Loop
+
+All commands have an **Outcome Capture** section that logs:
+1. Success criteria met
+2. What went well / wrong
+3. New patterns discovered
+4. Errors encountered and solutions
+5. Knowledge base updates needed
+
+### Permissions
+
+- **File read**: Full project access
+- **File write**: `app/`, `tests/`, `.opencode/`, `docs/` directories only
+- **Commands**: npm, npx, git, node
+
+### Architecture Decisions
+
+See `docs/adr/` for full decision records:
+- `ADR-001-agent-orchestrator.md` — Agent orchestrator with self-learning loops
+- `ADR-002-e2e-fix-strategy.md` — E2E test failure resolution strategy
+- `ADR-003-orchestrator-knowledge-base.md` — Knowledge base architecture
 
 ## OpenCode Agent Commands
 

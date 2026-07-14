@@ -6,6 +6,110 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **Visual Workflow Analysis** (`workflow-analysis/`)
+  - 13 screenshots captured across all 12 pages
+  - Comprehensive `BUILT_BUGS.md` with bug tracking, API endpoint status, UX findings
+  - Config wizard verified for all 6 workflow types × 3 schedule types
+
+- **Config wizard validation feedback** (`app/config/page.tsx`)
+  - Added `validationError` state with yellow warning banner when user tries to proceed without filling parameters
+  - Added `data-testid="validation-error"` for test verification
+  - Validation auto-clears when user starts typing
+
+- **Dashboard retry notification toast** (`app/page.tsx`)
+  - Added green success / red error toast after clicking Retry on failed workflows
+  - Auto-dismisses after 4 seconds
+  - Added `data-testid="notification-toast"` for test verification
+  - Dismiss button included
+
+- **Relative timestamps for workflow cards** (`app/components/WorkflowCard.tsx`)
+  - Shows "Just now", "Xm ago", "Xh ago" for recent workflows (<24h)
+  - Falls back to absolute date for older workflows
+  - Previous format: "Started Jul 14, 2026, 10:30 PM" → Now: "Started 5m ago"
+
+- **`/api/queue/workflow` GET handler** (`app/api/queue/workflow/route.ts`)
+  - Returns `405 Method Not Allowed` with clear error message for GET requests
+  - Previously returned empty 200 body causing JSON parse errors
+
+- **Agent Orchestrator System** (`.opencode/`)
+  - Updated `opencode.json` with 6 agent definitions (planner, tdd-guide, code-reviewer, e2e-runner, build-resolver, security-reviewer)
+  - Added permission rules for file-read, file-write, and command execution
+  - Added context configuration linking to knowledge base files and memory graph
+  - Created `.opencode/instructions/` knowledge base with 4 files:
+    - `project-context.md` — Project overview, tech stack, current state
+    - `lessons.md` — Compiled lessons from past sessions
+    - `patterns.md` — 8 reusable code patterns with examples
+    - `error-solutions.md` — 7 common errors with solutions
+  - All 6 command files updated with **Outcome Capture** section for self-learning feedback loops
+
+- **Architecture Decision Records** (`docs/adr/`)
+  - `ADR-001-agent-orchestrator.md` — Agent orchestrator with self-learning loops
+  - `ADR-002-e2e-fix-strategy.md` — E2E test failure resolution strategy
+  - `ADR-003-orchestrator-knowledge-base.md` — Knowledge base architecture
+
+- **PRD.md** — Enhanced with Section 8: Agent Orchestrator (vision, architecture, components, self-learning loop, token optimization, implementation phases)
+
+### Fixed
+
+- **E2E Config selector** — `text=Choose the workflow` matched 2 elements
+  - Added `data-testid="config-description"` to `app/config/page.tsx`
+  - Updated `tests/e2e/pages/ConfigPage.ts` to use `[data-testid="config-description"]`
+
+- **`/api/dbos` endpoint timeout** — `DBOS.launch()` at module level caused hanging
+  - Made `DBOS.launch()` lazy with `initDBOS()` function (runs on first request only)
+  - Added 5s timeout wrapper around initialization
+  - Returns 503 with error message when DBOS unavailable
+
+- **`/api/workflows` endpoint timeout** — `listWorkflows()` hung when DB unavailable
+  - Wrapped `DBOSClient.create()` with 5s timeout in `app/actions.ts`
+  - Added 10s timeout wrapper in `app/api/workflows/route.ts`
+  - Returns 504 on timeout, fail fast with `{ success: false, error }`
+
+- **`/docs` page Swagger UI** — `@swagger-api/apidom-core` imported Node.js `module` built-in
+  - Changed to `dynamic(() => import('swagger-ui-react'), { ssr: false })`
+  - Added Turbopack `resolveAlias` for `@swagger-api/apidom-core` → CJS version
+  - Browser bundle no longer fails on `import { createRequire } from "module"`
+
+### Changed
+
+- **Removed Supabase dependency** (project `vclwajxnqslrwkwkhwrw` deleted)
+  - Switched to local PostgreSQL only
+  - Deleted `app/utils/supabase/` utility files
+  - Deleted `supabase/` directory with migrations
+  - Updated `app/lib/services.ts` to use `pg` (node-postgres) instead of Supabase client
+  - Updated `app/lib/observability.ts` to use `pg` instead of Supabase client
+  - Created `app/lib/db.ts` - local PostgreSQL connection pool and helpers
+  - Simplified `app/lib/database-config.ts` to always return local config
+  - Replaced "Supabase" tab in observability page with "Database" tab
+  - Removed `scripts/test-supabase-connection.js`
+  - Updated `scripts/test-db-config.js` for local-only
+  - Removed `@supabase/ssr` and `@supabase/supabase-js` dependencies
+  - Added `pg` and `@types/pg` dependencies
+  - Updated `package.json` scripts
+  - Database schema auto-initializes on first use via `app/lib/db.ts`
+
+### Removed
+
+- **Vercel project** `workflow101` deleted (was referencing deleted Supabase DB)
+- **Supabase configuration** from `.env` and `.env.local` files
+
+### Fixed
+
+- **Repaired corrupted `node_modules/`** (from failed earlier `npm install`)
+  - Fixed 0-byte/corrupted files in: `source-map`, `pg-types`, `postgres-*`, `tldts`, `symbol-tree`, `fdir`, `magic-string`, `tinyglobby`, `obuf`, `ulid`, `swagger-ui-*`, `@testing-library/*`
+  - Restored missing transitive dependencies: `pg-numeric`, `pg-int8`, `asynckit`, `dequal`, `lz-string`, `pretty-format`, `react-is`, `js-tokens`, `aria-query`, `dom-accessibility-api`
+  - Replaced corrupted `@next/swc-win32-x64-msvc` binary (was not valid Win32 app)
+- **Deleted corrupted `package-lock.json`** and regenerated cleanly
+- **Added `dev-server.log` and `test-results/` to `.gitignore`**
+
+### Added
+
+- **Initialized custom database tables** (4 tables in `public` schema):
+  - `workflow_executions` - tracks workflow run state
+  - `workflow_configs` - workflow configuration storage
+  - `approvals` - approval workflow tracking
+  - `audit_logs` - event audit trail
+
 - **Vercel Blob Integration** (`app/lib/blob-utils.ts`)
   - Server-side blob upload utilities
   - `uploadBlob()`, `listBlobs()`, `deleteBlob()` functions

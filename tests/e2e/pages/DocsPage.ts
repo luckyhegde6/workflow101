@@ -13,30 +13,30 @@ export class DocsPage {
     this.page = page;
     this.title = page.locator('h1');
     this.swaggerUi = page.locator('.swagger-ui');
-    this.openApiTab = page.locator('button:has-text("OpenAPI Spec")');
-    this.tryItTab = page.locator('button:has-text("Try It Out")');
-    this.endpointList = page.locator('[data-testid="endpoint-item"]');
-    this.backLink = page.locator('a:has-text("Back")');
+    this.openApiTab = page.locator('.opblock-tag-section');
+    this.tryItTab = page.locator('.btn.try-out__btn');
+    this.endpointList = page.locator('.opblock');
+    this.backLink = page.locator('a:has-text("Back to Dashboard")');
   }
 
   async goto() {
     await this.page.goto('/docs');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async isSwaggerUILoaded(): Promise<boolean> {
-    await this.page.waitForSelector('.swagger-ui', { timeout: 10000 });
+    await this.page.waitForSelector('.swagger-ui', { timeout: 15000 });
     return this.swaggerUi.isVisible();
   }
 
   async clickOpenApiTab() {
-    await this.openApiTab.click();
-    await this.page.waitForLoadState('networkidle');
+    // In Swagger UI, sections are expanded by default
+    // No explicit tab clicking needed
   }
 
   async clickTryItTab() {
-    await this.tryItTab.click();
-    await this.page.waitForLoadState('networkidle');
+    // Click the "Try it out" button on the first endpoint
+    await this.tryItTab.first().click();
   }
 
   async getEndpointCount(): Promise<number> {

@@ -63,3 +63,23 @@
 
 - [ ] CI/CD configuration for E2E tests
 - [ ] Address workflow package vulnerabilities (pending upstream fix)
+- [ ] `dbos-config.yaml` missing - DBOS CLI needs this for full workflow management
+- [ ] `@workflow/core` exports issue - Internal path `./dist/runtime/helpers` not in exports field
+- [ ] DBOS SDK Node.js v24 compat - `ERR_PACKAGE_PATH_NOT_EXPORTED` on some SDK packages
+
+## Known Issues
+
+### E2E
+- [x] **Config selector fixed** - Added `data-testid="config-description"` to source component
+- [x] **`/api/dbos` timeout fixed** - Lazy init with 5s timeout, returns 503 on failure
+- [x] **`/api/workflows` timeout fixed** - 10s timeout wrapper, returns 504 on failure
+- [x] **`/docs` Swagger UI fixed** - dynamic import with `ssr:false` + CJS resolve alias
+- [x] **All 54 chromium E2E tests pass** — Firefox/WebKit failures are missing browser binaries (pre-existing env issue)
+
+### Agent Orchestrator
+- [x] **opencode.json updated** — 6 agents, permissions, context/knowledge base links
+- [x] **Knowledge base created** — 4 files in `.opencode/instructions/`
+- [x] **Commands updated** — All 6 enhanced with Outcome Capture for self-learning
+- [x] **3 ADRs created** — Orchestrator design, E2E fix strategy, Knowledge base architecture
+- [x] **PRD.md enhanced** — Section 8: Agent Orchestrator with self-learning loops
+- [x] **Memory graph seeded** — 6 entities with project, architecture, and bug information

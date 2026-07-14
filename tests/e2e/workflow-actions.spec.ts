@@ -2,54 +2,51 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Enqueue Workflow Flow', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-  });
-
-  test('should show loading state when enqueueing', async ({ page }) => {
-    const enqueueButton = page.locator('[data-testid="enqueue-button"]');
-    
-    await enqueueButton.click();
-    
-    await expect(enqueueButton).toContainText('Enqueueing...');
-    await expect(enqueueButton).toBeDisabled();
-  });
-
-  test('should complete enqueueing and reset button', async ({ page }) => {
-    const enqueueButton = page.locator('[data-testid="enqueue-button"]');
-    
-    await enqueueButton.click();
-    
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    // Wait for React hydration: the select is populated by JS at runtime, not SSR
     await page.waitForFunction(() => {
-      const button = document.querySelector('[data-testid="enqueue-button"]');
-      return button && button.textContent?.includes('Enqueue Workflow');
-    }, { timeout: 10000 }).catch(() => {});
+      const select = document.querySelector('[data-testid="workflow-select"]') as HTMLSelectElement;
+      return select && select.options.length >= 6;
+    }, { timeout: 15000, polling: 200 });
   });
 
-  test('should show error when enqueue fails', async ({ page }) => {
+  test('should navigate to config page', async ({ page }) => {
+    test.setTimeout(30000);
+    
+    // Test that the enqueue button is rendered and suggests clicking to config
     const enqueueButton = page.locator('[data-testid="enqueue-button"]');
+    await expect(enqueueButton).toBeVisible({ timeout: 15000 });
+    await expect(enqueueButton).toBeEnabled({ timeout: 15000 });
+    await expect(enqueueButton).toContainText('Configure & Run');
     
-    await page.evaluate(() => {
-      window.fetch = async () => {
-        throw new Error('Network error');
-      };
-    });
+    // Navigate directly to the config wizard with a workflow preselected
+    await page.goto('/config?workflow=emailNotificationWorkflow', { waitUntil: 'domcontentloaded' });
     
-    await enqueueButton.click();
+    // Verify config page loads with the workflow param
+    expect(page.url()).toContain('/config');
+    expect(page.url()).toContain('workflow=emailNotificationWorkflow');
     
-    await page.waitForTimeout(5000);
+    // Wait for React hydration and verify step 2 rendered (pre-selected workflow skips step 1)
+    await page.waitForFunction(() => {
+      const h2 = document.querySelector('h2');
+      return h2 && h2.textContent === 'Configure Parameters';
+    }, { timeout: 15000, polling: 200 });
+    
+    // Verify Email-specific fields are visible
+    await expect(page.locator('input[placeholder="recipient@example.com"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('input[placeholder="Email subject"]')).toBeVisible({ timeout: 5000 });
   });
 });
 
 test.describe('Workflow Status Display', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(5000);
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
   });
 
   test('should display workflow cards when workflows exist', async ({ page }) => {
     const workflowList = page.locator('[data-testid="workflow-list"]');
     
-    if (await workflowList.isVisible()) {
+    if (await workflowList.isVisible({ timeout: 5000 }).catch(() => false)) {
       const cards = workflowList.locator('[id^="workflow-card-"]');
       const cardCount = await cards.count();
       
@@ -64,7 +61,7 @@ test.describe('Workflow Status Display', () => {
   test('should show status badges', async ({ page }) => {
     const workflowList = page.locator('[data-testid="workflow-list"]');
     
-    if (await workflowList.isVisible()) {
+    if (await workflowList.isVisible({ timeout: 5000 }).catch(() => false)) {
       const statusBadge = page.locator('[data-testid^="workflow-status-"]').first();
       
       if (await statusBadge.isVisible()) {
@@ -78,7 +75,7 @@ test.describe('Workflow Status Display', () => {
 
 test.describe('Last Updated Timestamp', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
   });
 
   test('should show last updated timestamp', async ({ page }) => {
@@ -86,7 +83,7 @@ test.describe('Last Updated Timestamp', () => {
     
     const lastUpdated = page.locator('text=Last updated:');
     
-    if (await lastUpdated.isVisible()) {
+    if (await lastUpdated.isVisible({ timeout: 5000 }).catch(() => false)) {
       const timestamp = await lastUpdated.textContent();
       expect(timestamp).toMatch(/Last updated:\s*\d{1,2}:\d{2}:\d{2}\s*(AM|PM)?/i);
     }

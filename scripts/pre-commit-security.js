@@ -39,7 +39,6 @@ const ALLOWED_FILES = [
   '.env.local.example',
   'scripts/pre-commit-security.js',
   'scripts/test-db-config.js',
-  'scripts/test-supabase-connection.js',
   'scripts/dev-db-up.sh',
 ];
 

@@ -86,7 +86,7 @@ export default function CronPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Worker Status</h2>
             
-            <div className="flex items-center gap-4 mb-6">
+            <div data-testid="worker-status" className="flex items-center gap-4 mb-6">
               <div className="relative">
                 <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                   <div className="w-4 h-4 rounded-full bg-green-500 animate-pulse"></div>
@@ -106,6 +106,7 @@ export default function CronPage() {
             </div>
 
             <button
+              data-testid="trigger-worker-button"
               onClick={handleTrigger}
               disabled={triggering}
               className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold disabled:opacity-50"
@@ -138,7 +139,7 @@ export default function CronPage() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Workflow Stats</h2>
             
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+              <div data-testid="stat-card" className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <span className="text-gray-600 dark:text-gray-400">Total Runs</span>
                 <span className="text-xl font-bold text-gray-900 dark:text-white">{workflowStats.total}</span>
               </div>

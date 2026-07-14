@@ -24,6 +24,18 @@ const statusIcons: Record<WorkflowStatusType, string> = {
 
 function formatTimestamp(epochMs: number): string {
   const date = new Date(epochMs);
+  const now = Date.now();
+  const diffMs = now - epochMs;
+  const diffMinutes = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  // Show relative time for recent workflows (< 24 hours)
+  if (diffMinutes < 1) return 'Just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  // Older workflows show absolute date
   return date.toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',

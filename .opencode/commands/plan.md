@@ -73,3 +73,23 @@ For each task include:
 - Testing: Y hours
 - Buffer: Z hours
 ```
+
+## Outcome Capture
+
+After execution, log the outcome to improve future runs:
+
+### Success Criteria
+- [ ] Task completed successfully
+- [ ] All verifications passed
+- [ ] No regressions introduced
+
+### Lessons Captured
+- What went well:
+- What went wrong:
+- New patterns discovered:
+- Errors encountered and solutions:
+
+### Knowledge Base Updates
+- [ ] Update `.opencode/instructions/lessons.md` with new learnings
+- [ ] Update `.opencode/instructions/patterns.md` with new patterns
+- [ ] Update `.opencode/instructions/error-solutions.md` with new error solutions

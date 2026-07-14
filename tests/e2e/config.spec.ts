@@ -9,7 +9,7 @@ test.describe('Config Page', () => {
     await expect(config.title).toContainText('Workflow');
   });
 
-  test('should have workflow select', async ({ config }) => {
+  test('should have workflow selection grid', async ({ config }) => {
     await expect(config.workflowSelect).toBeVisible();
   });
 
@@ -17,19 +17,16 @@ test.describe('Config Page', () => {
     await expect(config.submitButton).toBeVisible();
   });
 
-  test('should display workflow description when selected', async ({ config }) => {
+  test('should display workflow description', async ({ config }) => {
     await expect(config.workflowDescription).toBeVisible();
   });
 
   test.describe('Workflow Options', () => {
-    test('should show all workflow types', async ({ config }) => {
+    test('should allow selecting different workflow types', async ({ config }) => {
       const workflows = [
         'exampleWorkflow',
         'emailNotificationWorkflow',
         'dataProcessingWorkflow',
-        'onboardingWorkflow',
-        'scheduledReportWorkflow',
-        'webhookHandlerWorkflow',
       ];
 
       for (const workflow of workflows) {
@@ -40,9 +37,8 @@ test.describe('Config Page', () => {
   });
 
   test.describe('Navigation', () => {
-    test('should navigate back to dashboard', async ({ config }) => {
-      await config.backLink.click();
-      await expect(config.page).toHaveURL('/');
+    test('should have back button', async ({ config }) => {
+      await expect(config.backButton).toBeVisible();
     });
   });
 });

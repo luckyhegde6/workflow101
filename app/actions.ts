@@ -14,6 +14,16 @@ import {
   trackQueueDepth,
 } from './lib/sentry-metrics';
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms);
+    promise.then(
+      (val) => { clearTimeout(timer); resolve(val); },
+      (err) => { clearTimeout(timer); reject(err); }
+    );
+  });
+}
+
 export type WorkflowStatusType = 'SUCCESS' | 'PENDING' | 'ENQUEUED' | 'ERROR';
 
 export interface WorkflowInfo {
@@ -46,7 +56,7 @@ async function withClient<T>(callback: (client: DBOSClient) => Promise<T>): Prom
     );
   }
   
-  const client = await DBOSClient.create({ systemDatabaseUrl: databaseURL });
+  const client = await withTimeout(DBOSClient.create({ systemDatabaseUrl: databaseURL }), 5000);
   try {
     return await callback(client);
   } finally {
@@ -111,7 +121,7 @@ export async function listWorkflows(
         sortDesc: true,
       });
       
-      const workflows: WorkflowInfo[] = results.map((wf) => {
+      const workflows: WorkflowInfo[] = results.map((wf: WorkflowStatus) => {
         // Track status distribution for monitoring
         trackWorkflowStatus(wf.workflowName, wf.status as WorkflowStatusType);
         
@@ -159,7 +169,7 @@ export async function getWorkflowStatus(
         sortDesc: true,
       });
       
-      const result = results.find(wf => wf.workflowID === workflowId);
+      const result = results.find((wf: WorkflowStatus) => wf.workflowID === workflowId);
       
       if (!result) {
         return { success: false, error: 'Workflow not found' };
@@ -209,7 +219,7 @@ export async function getWorkflowResult(
   try {
     return await withClient(async (client) => {
       const results = await client.listWorkflows({});
-      const workflow = results.find(wf => wf.workflowID === workflowId);
+      const workflow = results.find((wf: WorkflowStatus) => wf.workflowID === workflowId);
       if (!workflow) {
         return { success: false, error: 'Workflow not found' };
       }
@@ -226,7 +236,15 @@ export async function getWorkflowResult(
 
 export async function triggerWorker(): Promise<{ success: boolean; message?: string; error?: string }> {
   try {
-    const response = await fetch('/api/dbos', { method: 'GET' });
+    // Construct absolute URL for server-side fetch. Relative URLs work in Next.js
+    // server actions (fetch is patched with request context), but an absolute URL
+    // is more robust for edge/serverless environments.
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_VERCEL_URL
+        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+        : 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/dbos`, { method: 'GET' });
     if (response.ok) {
       const text = await response.text();
       return { success: true, message: text };
@@ -281,8 +299,8 @@ export async function scheduleWorkflow(
     }
     
     // Track scheduled workflow
-    Sentry.metrics.incr('workflow_scheduled', 1, {
-      tags: {
+    Sentry.metrics.count('workflow_scheduled', 1, {
+      attributes: {
         workflow_name: workflowName,
         schedule_type: config?.type || 'immediate',
       },
