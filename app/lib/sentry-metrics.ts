@@ -26,8 +26,8 @@ export function trackWorkflowStatus(
   metadata?: Record<string, string | number>
 ): void {
   // Increment counter for this status
-  Sentry.metrics.incr('workflow_status_count', 1, {
-    tags: {
+  Sentry.metrics.count('workflow_status_count', 1, {
+    attributes: {
       workflow_name: workflowName,
       status: status.toLowerCase(),
       ...(metadata?.workflow_type && { workflow_type: String(metadata.workflow_type) }),
@@ -46,7 +46,8 @@ export function trackWorkflowRuntime(
 ): void {
   // Add timing distribution
   Sentry.metrics.distribution('workflow_runtime_ms', durationMs, {
-    tags: {
+    unit: 'millisecond',
+    attributes: {
       workflow_name: workflowName,
       status: status.toLowerCase(),
       ...(metadata?.workflow_type && { workflow_type: String(metadata.workflow_type) }),
@@ -56,7 +57,7 @@ export function trackWorkflowRuntime(
   // Also add a gauge for current queue depth by status
   if (status === 'PENDING' || status === 'ENQUEUED') {
     Sentry.metrics.gauge('workflow_queue_depth', 1, {
-      tags: {
+      attributes: {
         workflow_name: workflowName,
         status: status.toLowerCase(),
       },
@@ -71,8 +72,8 @@ export function trackWorkflowType(
   workflowName: string,
   metadata?: Record<string, string | number>
 ): void {
-  Sentry.metrics.incr('workflow_type_count', 1, {
-    tags: {
+  Sentry.metrics.count('workflow_type_count', 1, {
+    attributes: {
       workflow_name: workflowName,
       ...(metadata?.schedule_type && { schedule_type: String(metadata.schedule_type) }),
     },
@@ -87,8 +88,8 @@ export function trackWorkflowEnqueue(
   queueName: string,
   metadata?: Record<string, string | number>
 ): void {
-  Sentry.metrics.incr('workflow_enqueued', 1, {
-    tags: {
+  Sentry.metrics.count('workflow_enqueued', 1, {
+    attributes: {
       workflow_name: workflowName,
       queue_name: queueName,
     },
@@ -107,7 +108,7 @@ export function trackWorkflowComplete(
 ): void {
   // Track as gauge for completion rate
   Sentry.metrics.gauge('workflow_completion', success ? 1 : 0, {
-    tags: {
+    attributes: {
       workflow_name: workflowName,
       status: success ? 'success' : 'error',
       ...(error && { error_type: error.substring(0, 50) }),
@@ -117,7 +118,8 @@ export function trackWorkflowComplete(
   // If we have duration, track it
   if (durationMs !== undefined) {
     Sentry.metrics.distribution('workflow_completion_time_ms', durationMs, {
-      tags: {
+      unit: 'millisecond',
+      attributes: {
         workflow_name: workflowName,
         success: String(success),
       },
@@ -135,7 +137,8 @@ export function trackApiResponseTime(
   durationMs: number
 ): void {
   Sentry.metrics.distribution('api_response_time_ms', durationMs, {
-    tags: {
+    unit: 'millisecond',
+    attributes: {
       endpoint,
       method,
       status_class: `${Math.floor(statusCode / 100)}xx`,
@@ -152,8 +155,8 @@ export function trackDatabaseOperation(
   durationMs?: number,
   metadata?: Record<string, string | number>
 ): void {
-  Sentry.metrics.incr('database_operation_count', 1, {
-    tags: {
+  Sentry.metrics.count('database_operation_count', 1, {
+    attributes: {
       operation,
       success: String(success),
     },
@@ -161,7 +164,8 @@ export function trackDatabaseOperation(
 
   if (durationMs !== undefined) {
     Sentry.metrics.distribution('database_operation_time_ms', durationMs, {
-      tags: {
+      unit: 'millisecond',
+      attributes: {
         operation,
         success: String(success),
       },
@@ -178,7 +182,7 @@ export function trackQueueDepth(
   metadata?: Record<string, string | number>
 ): void {
   Sentry.metrics.gauge('queue_depth', depth, {
-    tags: {
+    attributes: {
       queue_name: queueName,
       ...metadata,
     },
@@ -193,8 +197,8 @@ export function trackRetryAttempt(
   attemptNumber: number,
   success: boolean
 ): void {
-  Sentry.metrics.incr('workflow_retry_attempt', 1, {
-    tags: {
+  Sentry.metrics.count('workflow_retry_attempt', 1, {
+    attributes: {
       workflow_name: workflowName,
       attempt: String(attemptNumber),
       success: String(success),
@@ -208,7 +212,7 @@ export function trackRetryAttempt(
 export async function withMetrics<T>(
   metricName: string,
   operation: () => Promise<T>,
-  tags?: Record<string, string>
+  attributes?: Record<string, string>
 ): Promise<T> {
   const startTime = Date.now();
   try {
@@ -216,7 +220,8 @@ export async function withMetrics<T>(
     const duration = Date.now() - startTime;
     
     Sentry.metrics.distribution(`${metricName}_duration_ms`, duration, {
-      tags: { ...tags, status: 'success' },
+      unit: 'millisecond',
+      attributes: { ...attributes, status: 'success' },
     });
     
     return result;
@@ -224,11 +229,12 @@ export async function withMetrics<T>(
     const duration = Date.now() - startTime;
     
     Sentry.metrics.distribution(`${metricName}_duration_ms`, duration, {
-      tags: { ...tags, status: 'error' },
+      unit: 'millisecond',
+      attributes: { ...attributes, status: 'error' },
     });
     
-    Sentry.metrics.incr(`${metricName}_error_count`, 1, {
-      tags: { ...tags },
+    Sentry.metrics.count(`${metricName}_error_count`, 1, {
+      attributes: { ...attributes },
     });
     
     throw error;

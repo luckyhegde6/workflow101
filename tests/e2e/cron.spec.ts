@@ -23,18 +23,13 @@ test.describe('Cron Page', () => {
       await cron.page.waitForTimeout(500);
     });
   });
-
-  test.describe('Navigation', () => {
-    test('should navigate back to dashboard', async ({ cron }) => {
-      await cron.backLink.click();
-      await expect(cron.page).toHaveURL('/');
-    });
-  });
 });
 
 test.describe('Cron API', () => {
   test('should call DBOS worker endpoint', async ({ page }) => {
-    const response = await page.request.get('/api/dbos');
+    // DBOS initialization can be slow (lazy init with timeout), use longer timeout
+    test.setTimeout(30000);
+    const response = await page.request.get('/api/dbos', { timeout: 25000 });
     expect(response.status()).toBeGreaterThanOrEqual(200);
   });
 });

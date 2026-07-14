@@ -12,6 +12,11 @@
 
 # testing
 /coverage
+/test-results/
+
+# dev logs
+dev-server.log
+start-dev.vbs
 
 # next.js
 /.next/
@@ -62,3 +67,18 @@ next-env.d.ts
 .playwright-test/
 .playwright
 .playwright-cli
+.playwright-mcp
+playwright-report/
+
+# logs and temp artifacts
+*.log
+npm-install.log
+temp-scripts/
+
+# generated CJS scripts (temp helpers)
+gen-mjs.cjs
+create-pkgjson.cjs
+check-deps.cjs
+
+# test results
+playwright-results.json

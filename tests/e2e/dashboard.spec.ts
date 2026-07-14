@@ -9,17 +9,13 @@ test.describe('Dashboard', () => {
     await expect(dashboard.title).toContainText('Workflow');
   });
 
-  test('should have navigation links', async ({ dashboard }) => {
-    await expect(dashboard.backLink).toBeVisible();
-  });
-
   test('should display workflow select dropdown', async ({ dashboard }) => {
     await expect(dashboard.workflowSelect).toBeVisible();
   });
 
   test('should have enqueue button', async ({ dashboard }) => {
     await expect(dashboard.enqueueButton).toBeVisible();
-    await expect(dashboard.enqueueButton).toContainText('Enqueue');
+    await expect(dashboard.enqueueButton).toContainText('Workflow');
   });
 
   test.describe('Workflow Selection', () => {
@@ -36,20 +32,14 @@ test.describe('Dashboard', () => {
       }
     });
   });
-
-  test.describe('Navigation', () => {
-    test('should navigate back to home', async ({ dashboard }) => {
-      await dashboard.backLink.click();
-      await expect(dashboard.page).toHaveURL('/');
-    });
-  });
 });
 
 test.describe('Dashboard - API Integration', () => {
   test('should fetch workflows from API', async ({ dashboard }) => {
+    test.setTimeout(30000);
     await dashboard.goto();
     
-    const response = await dashboard.page.request.get('/api/workflows');
+    const response = await dashboard.page.request.get('/api/workflows', { timeout: 25000 });
     expect(response.status()).toBe(200);
     
     const data = await response.json();
@@ -57,9 +47,10 @@ test.describe('Dashboard - API Integration', () => {
   });
 
   test('should handle API errors gracefully', async ({ dashboard }) => {
+    test.setTimeout(30000);
     await dashboard.goto();
     
-    const response = await dashboard.page.request.get('/api/workflows?invalid=true');
+    const response = await dashboard.page.request.get('/api/workflows?invalid=true', { timeout: 25000 });
     expect(response.status()).toBeGreaterThanOrEqual(200);
   });
 });

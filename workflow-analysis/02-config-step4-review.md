@@ -1,0 +1,108 @@
+- generic [active] [ref=f77e1]:
+  - navigation [ref=f77e2]:
+    - generic [ref=f77e5]:
+      - link "⚡ Workflow101" [ref=f77e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f77e7]: ⚡
+        - generic [ref=f77e8]: Workflow101
+      - generic [ref=f77e9]:
+        - link "📊 Dashboard" [ref=f77e10] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f77e11]: 📊
+          - generic [ref=f77e12]: Dashboard
+        - link "⚙️ Config" [ref=f77e13] [cursor=pointer]:
+          - /url: /config
+          - generic [ref=f77e14]: ⚙️
+          - generic [ref=f77e15]: Config
+        - link "✅ Approvals" [ref=f77e16] [cursor=pointer]:
+          - /url: /approvals
+          - generic [ref=f77e17]: ✅
+          - generic [ref=f77e18]: Approvals
+        - link "⏰ Cron" [ref=f77e19] [cursor=pointer]:
+          - /url: /cron
+          - generic [ref=f77e20]: ⏰
+          - generic [ref=f77e21]: Cron
+        - link "📈 Monitor" [ref=f77e22] [cursor=pointer]:
+          - /url: /observability
+          - generic [ref=f77e23]: 📈
+          - generic [ref=f77e24]: Monitor
+        - link "📋 Logs" [ref=f77e25] [cursor=pointer]:
+          - /url: /logs
+          - generic [ref=f77e26]: 📋
+          - generic [ref=f77e27]: Logs
+        - link "📖 Docs" [ref=f77e28] [cursor=pointer]:
+          - /url: /docs
+          - generic [ref=f77e29]: 📖
+          - generic [ref=f77e30]: Docs
+        - link "ℹ️ About" [ref=f77e31] [cursor=pointer]:
+          - /url: /about
+          - generic [ref=f77e32]: ℹ️
+          - generic [ref=f77e33]: About
+        - link "✉️ Contact" [ref=f77e34] [cursor=pointer]:
+          - /url: /contact
+          - generic [ref=f77e35]: ✉️
+          - generic [ref=f77e36]: Contact
+  - main [ref=f77e37]:
+    - generic [ref=f77e39]:
+      - navigation [ref=f77e40]:
+        - list [ref=f77e41]:
+          - listitem [ref=f77e42]:
+            - link "Dashboard" [ref=f77e43] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f77e44]:
+            - generic [ref=f77e45]: /
+            - link "Workflow Config" [ref=f77e46] [cursor=pointer]:
+              - /url: /config
+          - listitem [ref=f77e47]:
+            - generic [ref=f77e48]: /
+            - generic [ref=f77e49]: Step 4
+      - navigation "Progress" [ref=f77e50]:
+        - generic [ref=f77e51]:
+          - generic [ref=f77e53]:
+            - button [ref=f77e54] [cursor=pointer]
+            - generic [ref=f77e57]:
+              - paragraph [ref=f77e58]: Select Workflow
+              - paragraph [ref=f77e59]: Choose the workflow type
+          - generic [ref=f77e62]:
+            - button [ref=f77e63] [cursor=pointer]
+            - generic [ref=f77e66]:
+              - paragraph [ref=f77e67]: Configure Parameters
+              - paragraph [ref=f77e68]: Set workflow parameters
+          - generic [ref=f77e71]:
+            - button [ref=f77e72] [cursor=pointer]
+            - generic [ref=f77e75]:
+              - paragraph [ref=f77e76]: Schedule
+              - paragraph [ref=f77e77]: Set execution schedule
+          - generic [ref=f77e80]:
+            - button "4" [ref=f77e81]
+            - generic [ref=f77e82]:
+              - paragraph [ref=f77e83]: Review & Confirm
+              - paragraph [ref=f77e84]: Review and submit
+      - generic [ref=f77e85]:
+        - generic [ref=f77e86]:
+          - generic [ref=f77e87]:
+            - heading "Review & Confirm" [level=2] [ref=f77e88]
+            - paragraph [ref=f77e89]: Review your workflow configuration before submitting.
+          - generic [ref=f77e90]:
+            - heading "Configuration Summary" [level=3] [ref=f77e92]
+            - generic [ref=f77e93]:
+              - generic [ref=f77e94]:
+                - generic [ref=f77e95]:
+                  - paragraph [ref=f77e96]: Workflow Type
+                  - paragraph [ref=f77e97]: Example
+                - generic [ref=f77e98]:
+                  - paragraph [ref=f77e99]: Schedule
+                  - paragraph [ref=f77e100]: Run Immediately
+              - generic [ref=f77e101]:
+                - paragraph [ref=f77e102]: Parameters
+                - generic [ref=f77e103]: "{ \"message\": \"Test workflow message\" }"
+          - paragraph [ref=f77e105]:
+            - generic [ref=f77e106]: 💡
+            - generic [ref=f77e107]: Click Submit to execute this workflow immediately.
+        - generic [ref=f77e108]:
+          - button "← Back" [ref=f77e109]
+          - generic [ref=f77e110]:
+            - button "Preview" [ref=f77e111]
+            - button "Submit →" [ref=f77e112]
+  - button "Open Next.js Dev Tools" [ref=f77e118] [cursor=pointer]
+  - alert [ref=f77e122]

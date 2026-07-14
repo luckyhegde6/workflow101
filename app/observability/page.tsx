@@ -70,7 +70,7 @@ export default function ObservabilityPage() {
     workflowsProcessed: 0,
     errors: 0,
   });
-  const [activeTab, setActiveTab] = useState<'overview' | 'inspect' | 'approvals' | 'supabase' | 'metrics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'inspect' | 'approvals' | 'database' | 'metrics'>('overview');
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
 
   const fetchWorkflows = useCallback(async () => {
@@ -276,7 +276,7 @@ export default function ObservabilityPage() {
               { id: 'inspect', label: 'DBOS Inspect', icon: '🔍' },
               { id: 'approvals', label: 'Approvals', icon: '✅' },
               { id: 'metrics', label: 'Sentry Metrics', icon: '📊' },
-              { id: 'supabase', label: 'Supabase', icon: '🗄️' },
+              { id: 'database', label: 'Database', icon: '🗄️' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -680,87 +680,74 @@ export default function ObservabilityPage() {
           </div>
         )}
 
-        {activeTab === 'supabase' && (
+        {activeTab === 'database' && (
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <span>🗄️</span> Supabase Integration
+                <span>🗄️</span> Local PostgreSQL Database
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Workflow executions are stored in Supabase for persistence and cross-instance access.
-                Configure your Supabase connection in <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">.env</code>.
+                Workflow data is stored in a local PostgreSQL database running via Docker.
+                The schema is auto-initialized on first use by <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">app/lib/db.ts</code>.
               </p>
               
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Environment Variables</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Connection Info</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
                       <span className="text-green-600">✓</span>
-                      <code className="flex-1 bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded text-xs font-mono">
-                        NEXT_PUBLIC_SUPABASE_URL
-                      </code>
+                      <span className="text-gray-600 dark:text-gray-400">Host: localhost:5432</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2">
                       <span className="text-green-600">✓</span>
-                      <code className="flex-1 bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded text-xs font-mono">
-                        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-                      </code>
+                      <span className="text-gray-600 dark:text-gray-400">Database: workflow101</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-600">✓</span>
+                      <span className="text-gray-600 dark:text-gray-400">User: postgres</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-600">✓</span>
+                      <span className="text-gray-600 dark:text-gray-400">Driver: pg (node-postgres)</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Supabase URL</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Connection String</h3>
                   <code className="text-sm text-gray-600 dark:text-gray-400 font-mono break-all">
-                    {process.env.NEXT_PUBLIC_SUPABASE_URL || 'Not configured'}
+                    postgresql://postgres:postgres@localhost:5432/workflow101
                   </code>
                 </div>
               </div>
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Required Supabase Table</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Database Tables</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Create this table in your Supabase project to store workflow executions:
+                The following tables are created automatically in local PostgreSQL:
               </p>
               <pre className="bg-gray-900 text-green-400 p-4 rounded-xl text-xs font-mono overflow-x-auto">
-{`-- Create workflow_executions table
-CREATE TABLE workflow_executions (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  workflow_name TEXT NOT NULL,
-  workflow_id TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'PENDING',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  completed_at TIMESTAMPTZ,
-  input_data JSONB,
-  output_data JSONB,
-  error_message TEXT,
-  retry_count INT DEFAULT 0
-);
+{`Tables:
+- workflow_executions  (workflow run history)
+- workflow_configs     (saved workflow configurations)
+- approvals            (pending/approved/rejected approvals)
+- audit_logs           (audit trail for actions)
 
--- Enable RLS
-ALTER TABLE workflow_executions ENABLE ROW LEVEL SECURITY;
-
--- Create policy for public access (adjust for your needs)
-CREATE POLICY "Allow all" ON workflow_executions
-  FOR ALL USING (true) WITH CHECK (true);
-
--- Create index for faster queries
-CREATE INDEX idx_workflow_executions_status ON workflow_executions(status);
-CREATE INDEX idx_workflow_executions_created_at ON workflow_executions(created_at DESC);`}
+All tables use UUID primary keys and JSONB for flexible data storage.`}
               </pre>
             </div>
 
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 text-white">
               <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
                 <span>🚀</span> Getting Started
               </h3>
-              <ol className="space-y-2 text-green-100">
-                <li>1. Go to your Supabase project dashboard</li>
-                <li>2. Open the SQL Editor</li>
-                <li>3. Run the table creation script above</li>
-                <li>4. Start enqueueing workflows - they'll be persisted automatically</li>
+              <ol className="space-y-2 text-blue-100">
+                <li>1. Ensure Docker Desktop is running</li>
+                <li>2. Run: <code className="bg-white/20 px-2 py-0.5 rounded">npm run db:up</code> (starts PostgreSQL container)</li>
+                <li>3. Tables are created automatically on first use</li>
+                <li>4. Start enqueueing workflows - data is persisted locally</li>
               </ol>
             </div>
           </div>

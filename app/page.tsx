@@ -10,6 +10,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const fetchWorkflows = useCallback(async () => {
     try {
@@ -37,10 +38,13 @@ export default function Home() {
   const handleRetry = async (workflowId: string) => {
     const result = await retryWorkflow(workflowId);
     if (result.success) {
+      setNotification({ type: 'success', message: 'Workflow retry initiated successfully' });
       await fetchWorkflows();
     } else {
-      setError(result.error || 'Failed to retry workflow');
+      setNotification({ type: 'error', message: result.error || 'Failed to retry workflow' });
     }
+    // Auto-dismiss notification after 4 seconds
+    setTimeout(() => setNotification(null), 4000);
   };
 
   return (
@@ -61,6 +65,27 @@ export default function Home() {
             className="mb-6 p-4 bg-red-100 border border-red-200 text-red-700 rounded-lg"
           >
             <p>{error}</p>
+          </div>
+        )}
+
+        {notification && (
+          <div 
+            data-testid="notification-toast"
+            className={`mb-6 p-4 rounded-lg flex items-center gap-3 animate-in slide-in-from-top duration-300 ${
+              notification.type === 'success'
+                ? 'bg-green-100 border border-green-200 text-green-800'
+                : 'bg-red-100 border border-red-200 text-red-700'
+            }`}
+          >
+            <span className="text-lg">{notification.type === 'success' ? '✓' : '✗'}</span>
+            <p className="flex-1">{notification.message}</p>
+            <button
+              onClick={() => setNotification(null)}
+              className="text-sm opacity-60 hover:opacity-100 transition-opacity"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
           </div>
         )}
 

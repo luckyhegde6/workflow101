@@ -27,13 +27,17 @@ function Step1SelectWorkflow({
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Select Workflow Type</h2>
-        <p className="text-gray-600 dark:text-gray-400">Choose the workflow you want to configure and execute.</p>
+        <p data-testid="config-description" className="text-gray-600 dark:text-gray-400">Choose the workflow you want to configure and execute.</p>
       </div>
       
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div 
+        data-testid="config-workflow-select"
+        className="grid md:grid-cols-2 lg:grid-cols-3 gap-4"
+      >
         {workflowOptions.map((wf) => (
           <button
             key={wf.type}
+            data-testid={`wf-option-${wf.type}`}
             onClick={() => onSelect(wf.type)}
             className={`p-6 rounded-xl text-left transition-all border-2 ${
               selected === wf.type
@@ -445,6 +449,8 @@ function WorkflowWizardInner() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [showValidation, setShowValidation] = useState(false);
 
   useEffect(() => {
     if (initialWorkflow && !workflowType) {
@@ -452,6 +458,14 @@ function WorkflowWizardInner() {
       setCurrentStep(2);
     }
   }, [initialWorkflow, workflowType]);
+
+  // Clear validation error when params change (user starts typing)
+  useEffect(() => {
+    if (showValidation && Object.keys(params).length > 0) {
+      setValidationError(null);
+      setShowValidation(false);
+    }
+  }, [params, showValidation]);
 
   const canProceed = useCallback(() => {
     switch (currentStep) {
@@ -468,6 +482,14 @@ function WorkflowWizardInner() {
   }, [currentStep, workflowType, params, scheduleType, scheduledAt]);
 
   const handleNext = () => {
+    // Validate step 2 requires at least one parameter
+    if (currentStep === 2 && Object.keys(params).length === 0) {
+      setValidationError('Please configure at least one parameter for this workflow before proceeding.');
+      setShowValidation(true);
+      return;
+    }
+    setValidationError(null);
+    setShowValidation(false);
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -548,11 +570,22 @@ function WorkflowWizardInner() {
           )}
           
           {currentStep === 2 && workflowType && (
-            <Step2ConfigureParams 
-              workflowType={workflowType}
-              params={params}
-              onChange={setParams}
-            />
+            <>
+              {showValidation && validationError && (
+                <div 
+                  data-testid="validation-error"
+                  className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-sm text-yellow-800 dark:text-yellow-300 flex items-start gap-2"
+                >
+                  <span className="text-lg">⚠️</span>
+                  <span>{validationError}</span>
+                </div>
+              )}
+              <Step2ConfigureParams 
+                workflowType={workflowType}
+                params={params}
+                onChange={setParams}
+              />
+            </>
           )}
           
           {currentStep === 3 && (
@@ -593,13 +626,17 @@ function WorkflowWizardInner() {
             </button>
             
             <div className="flex gap-3">
+              {currentStep !== 4 && (
+                <button
+                  onClick={() => setShowConfirm(true)}
+                  disabled={!canProceed()}
+                  className="px-6 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Quick Submit
+                </button>
+              )}
               <button
-                onClick={() => setShowConfirm(true)}
-                className="px-6 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-              >
-                Preview
-              </button>
-              <button
+                data-testid="submit-button"
                 onClick={handleNext}
                 disabled={!canProceed()}
                 className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"

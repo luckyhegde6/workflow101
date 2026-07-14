@@ -1,4 +1,4 @@
-import { createClient } from '../utils/supabase/server';
+import { query, queryOne } from './db';
 
 export interface WorkflowExecution {
   id: string;
@@ -22,30 +22,26 @@ export interface WorkflowStats {
   avg_duration_ms?: number;
 }
 
-export async function saveWorkflowExecution(execution: Omit<WorkflowExecution, 'id' | 'created_at'>): Promise<WorkflowExecution | null> {
+export async function saveWorkflowExecution(
+  execution: Omit<WorkflowExecution, 'id' | 'created_at'>
+): Promise<WorkflowExecution | null> {
   try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('workflow_executions')
-      .insert({
-        workflow_name: execution.workflow_name,
-        workflow_id: execution.workflow_id,
-        status: execution.status,
-        completed_at: execution.completed_at,
-        input_data: execution.input_data,
-        output_data: execution.output_data,
-        error_message: execution.error_message,
-        retry_count: execution.retry_count,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Failed to save workflow execution:', error);
-      return null;
-    }
-
-    return data as WorkflowExecution;
+    const result = await queryOne<WorkflowExecution>(
+      `INSERT INTO workflow_executions (workflow_name, workflow_id, status, completed_at, input_data, output_data, error_message, retry_count)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING *`,
+      [
+        execution.workflow_name,
+        execution.workflow_id,
+        execution.status,
+        execution.completed_at || null,
+        execution.input_data ? JSON.stringify(execution.input_data) : null,
+        execution.output_data ? JSON.stringify(execution.output_data) : null,
+        execution.error_message || null,
+        execution.retry_count || 0,
+      ]
+    );
+    return result;
   } catch (error) {
     console.error('Error saving workflow execution:', error);
     return null;
@@ -57,22 +53,20 @@ export async function getWorkflowExecutions(
   offset = 0
 ): Promise<{ executions: WorkflowExecution[]; total: number }> {
   try {
-    const supabase = await createClient();
-    
-    const { data, error, count } = await supabase
-      .from('workflow_executions')
-      .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    const executions = await query<WorkflowExecution>(
+      `SELECT * FROM workflow_executions
+       ORDER BY created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
 
-    if (error) {
-      console.error('Failed to get workflow executions:', error);
-      return { executions: [], total: 0 };
-    }
+    const countResult = await queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM workflow_executions'
+    );
 
-    return { 
-      executions: (data || []) as WorkflowExecution[], 
-      total: count || 0 
+    return {
+      executions,
+      total: parseInt(countResult?.count || '0', 10),
     };
   } catch (error) {
     console.error('Error getting workflow executions:', error);
@@ -82,51 +76,41 @@ export async function getWorkflowExecutions(
 
 export async function getWorkflowStats(): Promise<WorkflowStats> {
   try {
-    const supabase = await createClient();
-    
-    const { data, error } = await supabase
-      .from('workflow_executions')
-      .select('status, completed_at, created_at');
+    const rows = await query<{
+      status: string;
+      completed_at: string | null;
+      created_at: string;
+    }>('SELECT status, completed_at, created_at FROM workflow_executions');
 
-    if (error) {
-      console.error('Failed to get workflow stats:', error);
-      return { total: 0, success: 0, pending: 0, error: 0, success_rate: 0 };
-    }
+    const total = rows.length;
+    const success = rows.filter((r) => r.status === 'SUCCESS').length;
+    const pending = rows.filter(
+      (r) => r.status === 'PENDING' || r.status === 'ENQUEUED'
+    ).length;
+    const errorCount = rows.filter((r) => r.status === 'ERROR').length;
 
-    const executions = data || [];
-    const stats = {
-      total: executions.length,
-      success: executions.filter((e) => e.status === 'SUCCESS').length,
-      pending: executions.filter((e) => e.status === 'PENDING' || e.status === 'ENQUEUED').length,
-      error: executions.filter((e) => e.status === 'ERROR').length,
-      success_rate: executions.length > 0 
-        ? Math.round((executions.filter((e) => e.status === 'SUCCESS').length / executions.length) * 100)
-        : 0,
+    return {
+      total,
+      success,
+      pending,
+      error: errorCount,
+      success_rate:
+        total > 0 ? Math.round((success / total) * 100) : 0,
     };
-
-    return stats;
   } catch (error) {
     console.error('Error getting workflow stats:', error);
     return { total: 0, success: 0, pending: 0, error: 0, success_rate: 0 };
   }
 }
 
-export async function getWorkflowById(id: string): Promise<WorkflowExecution | null> {
+export async function getWorkflowById(
+  id: string
+): Promise<WorkflowExecution | null> {
   try {
-    const supabase = await createClient();
-    
-    const { data, error } = await supabase
-      .from('workflow_executions')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.error('Failed to get workflow by id:', error);
-      return null;
-    }
-
-    return data as WorkflowExecution;
+    return await queryOne<WorkflowExecution>(
+      'SELECT * FROM workflow_executions WHERE id = $1',
+      [id]
+    );
   } catch (error) {
     console.error('Error getting workflow by id:', error);
     return null;
@@ -139,23 +123,39 @@ export async function updateWorkflowStatus(
   additionalData?: Partial<WorkflowExecution>
 ): Promise<boolean> {
   try {
-    const supabase = await createClient();
-    
-    const updateData: Partial<WorkflowExecution> = { 
-      ...additionalData,
-      status,
-      ...(status === 'SUCCESS' || status === 'ERROR' ? { completed_at: new Date().toISOString() } : {}),
-    };
+    const now = new Date().toISOString();
+    const completedAt =
+      status === 'SUCCESS' || status === 'ERROR' ? now : null;
 
-    const { error } = await supabase
-      .from('workflow_executions')
-      .update(updateData)
-      .eq('id', id);
+    const fields: string[] = ['status = $1'];
+    const values: unknown[] = [status];
+    let paramIndex = 2;
 
-    if (error) {
-      console.error('Failed to update workflow status:', error);
-      return false;
+    if (additionalData) {
+      if (additionalData.error_message !== undefined) {
+        fields.push(`error_message = $${paramIndex++}`);
+        values.push(additionalData.error_message);
+      }
+      if (additionalData.output_data !== undefined) {
+        fields.push(`output_data = $${paramIndex++}`);
+        values.push(JSON.stringify(additionalData.output_data));
+      }
+      if (additionalData.retry_count !== undefined) {
+        fields.push(`retry_count = $${paramIndex++}`);
+        values.push(additionalData.retry_count);
+      }
     }
+
+    if (completedAt) {
+      fields.push(`completed_at = $${paramIndex++}`);
+      values.push(completedAt);
+    }
+
+    values.push(id);
+    await query(
+      `UPDATE workflow_executions SET ${fields.join(', ')} WHERE id = $${paramIndex}`,
+      values
+    );
 
     return true;
   } catch (error) {

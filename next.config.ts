@@ -2,7 +2,13 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // ... rest of your Next.js config
+  turbopack: {
+    resolveAlias: {
+      '@swagger-api/apidom-core': {
+        browser: './node_modules/@swagger-api/apidom-core/src/index.cjs',
+      },
+    },
+  },
 };
 
 export default withSentryConfig(nextConfig, {

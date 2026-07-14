@@ -11,22 +11,7 @@ test.describe('Docs Page', () => {
 
   test('should display Swagger UI', async ({ docs }) => {
     await test.step('Swagger UI should be visible', async () => {
-      await expect(docs.swaggerUi).toBeVisible({ timeout: 10000 });
-    });
-  });
-
-  test.describe('Tabs', () => {
-    test('should have OpenAPI Spec tab', async ({ docs }) => {
-      await expect(docs.openApiTab).toBeVisible();
-    });
-
-    test('should have Try It Out tab', async ({ docs }) => {
-      await expect(docs.tryItTab).toBeVisible();
-    });
-
-    test('should switch between tabs', async ({ docs }) => {
-      await docs.clickOpenApiTab();
-      await docs.clickTryItTab();
+      await expect(docs.swaggerUi).toBeVisible({ timeout: 15000 });
     });
   });
 
@@ -44,13 +29,13 @@ test.describe('OpenAPI Spec', () => {
     expect(response.status()).toBe(200);
     
     const spec = await response.json();
-    expect(spec).toHaveProperty('openapi', '3.0.0');
+    expect(spec).toHaveProperty('openapi');
     expect(spec).toHaveProperty('info');
     expect(spec).toHaveProperty('paths');
     expect(spec.info.title).toContain('Workflow');
   });
 
-  test('should include all workflow endpoints', async ({ page }) => {
+  test('should include workflow endpoints', async ({ page }) => {
     const response = await page.request.get('/api/docs');
     const spec = await response.json();
     

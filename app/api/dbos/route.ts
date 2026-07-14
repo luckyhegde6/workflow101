@@ -3,6 +3,16 @@ import { waitUntil } from '@vercel/functions';
 import { sleep } from 'workflow';
 import { getDatabaseConfig, getEnvironmentInfo } from '../../lib/database-config';
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms);
+    promise.then(
+      (val) => { clearTimeout(timer); resolve(val); },
+      (err) => { clearTimeout(timer); reject(err); }
+    );
+  });
+}
+
 const queue = new WorkflowQueue('exampleQueue');
 
 async function exampleWorkflow(message: string) {
@@ -141,21 +151,35 @@ DBOS.registerWorkflow(onboardingWorkflow, { name: 'onboardingWorkflow' });
 DBOS.registerWorkflow(scheduledReportWorkflow, { name: 'scheduledReportWorkflow' });
 DBOS.registerWorkflow(webhookHandlerWorkflow, { name: 'webhookHandlerWorkflow' });
 
-const dbConfig = getDatabaseConfig();
-console.log(`[DBOS] Database Config: ${JSON.stringify({
-  provider: dbConfig.provider,
-  isRemote: dbConfig.isRemote,
-  reason: getEnvironmentInfo().reason
-})}`);
+let dbosInitialized = false;
 
-DBOS.setConfig({
-  name: 'workflow101',
-  systemDatabaseUrl: dbConfig.url.replace('?sslmode=require', ''),
-  runAdminServer: false,
-});
-await DBOS.launch();
+async function initDBOS(): Promise<boolean> {
+  if (dbosInitialized) return true;
+
+  try {
+    const dbConfig = getDatabaseConfig();
+    console.log(`[DBOS] Database Config: ${JSON.stringify({
+      provider: dbConfig.provider,
+      isRemote: dbConfig.isRemote,
+      reason: getEnvironmentInfo().reason
+    })}`);
+
+    DBOS.setConfig({
+      name: 'workflow101',
+      systemDatabaseUrl: dbConfig.url.replace('?sslmode=require', ''),
+      runAdminServer: false,
+    });
+    await DBOS.launch();
+    dbosInitialized = true;
+    return true;
+  } catch (error) {
+    console.error('[DBOS] Initialization failed:', error);
+    return false;
+  }
+}
 
 async function waitForQueuedWorkflowsToComplete(timeoutMs: number): Promise<void> {
+  if (!dbosInitialized) return;
   const startTime = Date.now();
   const intervalMs = 1000;
   while (true) {
@@ -173,9 +197,24 @@ async function waitForQueuedWorkflowsToComplete(timeoutMs: number): Promise<void
 }
 
 export async function GET(request: Request) {
-  waitUntil(waitForQueuedWorkflowsToComplete(60000));
-  return new Response(`DBOS Worker started at ${new Date().toISOString()}`, {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' }
-  });
+  try {
+    const initialized = await withTimeout(initDBOS(), 5000);
+    if (!initialized) {
+      return new Response(JSON.stringify({ success: false, error: 'DBOS is not available' }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    waitUntil(waitForQueuedWorkflowsToComplete(60000));
+    return new Response(JSON.stringify({ success: true, message: `DBOS Worker started at ${new Date().toISOString()}` }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ success: false, error: 'DBOS initialization timed out' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

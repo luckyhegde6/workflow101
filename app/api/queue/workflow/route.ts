@@ -76,6 +76,23 @@ async function handleScheduledMessage(
 }
 
 /**
+ * Handle GET requests - this endpoint only processes queue callbacks via POST.
+ * Return a clear error for HTTP GET so consumers don't get unexpected empty bodies.
+ */
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      success: false,
+      error: 'This endpoint only handles POST requests from Vercel Queue callbacks. Use POST with a valid queue message payload.',
+    }),
+    {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+}
+
+/**
  * Main workflow queue handler
  * 
  * Uses default retry behavior from Vercel Queues.
