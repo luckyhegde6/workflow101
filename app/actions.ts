@@ -77,10 +77,13 @@ export async function enqueueWorkflow(
     trackWorkflowType(workflowName, metadata);
     
     return await withClient(async (client) => {
-      const result = await client.enqueue({
-        workflowName,
-        queueName,
-      });
+      const result = await client.enqueue(
+        {
+          workflowName,
+          queueName,
+        },
+        params || {}
+      );
       
       const duration = Date.now() - startTime;
       
@@ -198,10 +201,13 @@ export async function retryWorkflow(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     return await withClient(async (client) => {
-      await client.enqueue({
-        workflowName: 'exampleWorkflow',
-        queueName,
-      });
+      await client.enqueue(
+        {
+          workflowName: 'exampleWorkflow',
+          queueName,
+        },
+        {}
+      );
       return { success: true };
     });
   } catch (error) {
