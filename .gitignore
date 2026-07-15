@@ -83,6 +83,12 @@ check-deps.cjs
 # test results
 playwright-results.json
 
+# dev server run files
+.dev-server.pid
+
+# dev monitor scripts
+monitor.ps1
+
 # handoff files (committed — remove if you want to keep session logs private)
 # .agents/handoffs/*.md
 !.agents/handoffs/HANDOFF_SCHEMA.md
