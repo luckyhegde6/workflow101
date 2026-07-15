@@ -57,6 +57,25 @@
 - [x] Documentation updated (README, AGENTS, CHANGELOG)
 - [x] Session files (primer.md, CHANGELOG.md, TODOS.md, LESSONS.md)
 
+### Agent Handoff System (2026-07-16)
+- [x] `.agents/` directory structure with AGENTS.md master config
+- [x] `rules/guardrails.md` — 21 universal guardrails across 5 categories
+- [x] `rules/lifecycle.md` — Session lifecycle (START → WORK → HANDOFF → END)
+- [x] `rules/agents.yaml` — 8 agent role definitions (agent-agnostic)
+- [x] `HANDOFF_SCHEMA.md` — Handoff file format specification (v1.0)
+- [x] `templates/handoff-template.md` — Reusable handoff template
+- [x] `patterns/handoff-patterns.md` — 6 reusable handoff patterns
+- [x] `memory.md` — Persistent cross-session memory
+- [x] `scripts/create-handoff.cjs` — Automated handoff generation
+- [x] `scripts/read-handoff.cjs` — Handoff reading and parsing
+- [x] `scripts/validate-handoff.cjs` — Handoff format validation
+- [x] AGENTS.md updated with handoff system documentation
+- [x] CLAUDE.md references `.agents/AGENTS.md`
+- [x] opencode.json includes `.agents/AGENTS.md` in instructions
+- [x] `.opencode/instructions/` updated with handoff knowledge
+- [x] `.gitignore` updated for handoff files
+- [x] CHANGELOG.md updated
+
 ## In Progress
 
 ## Pending
@@ -83,3 +102,4 @@
 - [x] **3 ADRs created** — Orchestrator design, E2E fix strategy, Knowledge base architecture
 - [x] **PRD.md enhanced** — Section 8: Agent Orchestrator with self-learning loops
 - [x] **Memory graph seeded** — 6 entities with project, architecture, and bug information
+- [x] **Handoff system created** — `.agents/` with 21 guardrails, 8 agent roles, handoff lifecycle

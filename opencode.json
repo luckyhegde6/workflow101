@@ -7,73 +7,16 @@
       "oauth": {}
     }
   },
-  "agents": {
-    "planner": {
-      "description": "Creates implementation plans with dependency analysis and risk assessment",
-      "command": "plan",
-      "capabilities": ["read", "search", "think"],
-      "maxTokens": 4000
-    },
-    "tdd-guide": {
-      "description": "Strict test-driven development cycle (RED→GREEN→REFACTOR)",
-      "command": "tdd",
-      "capabilities": ["read", "write", "test"],
-      "maxTokens": 6000
-    },
-    "code-reviewer": {
-      "description": "Reviews code for quality, security, and DBOS patterns",
-      "command": "code-review",
-      "capabilities": ["read", "search", "think"],
-      "maxTokens": 4000
-    },
-    "e2e-runner": {
-      "description": "Runs Playwright E2E tests and diagnoses failures",
-      "command": "e2e",
-      "capabilities": ["read", "test", "browser"],
-      "maxTokens": 4000
-    },
-    "build-resolver": {
-      "description": "Fixes Next.js build and TypeScript errors",
-      "command": "build-fix",
-      "capabilities": ["read", "write", "test"],
-      "maxTokens": 6000
-    },
-    "security-reviewer": {
-      "description": "Security audit for inputs, auth, data protection, API",
-      "command": "security",
-      "capabilities": ["read", "search", "think"],
-      "maxTokens": 4000
-    }
+  "permission": {
+    "read": "allow",
+    "edit": "allow",
+    "bash": "allow"
   },
-  "permissions": [
-    {
-      "action": "file-read",
-      "paths": ["F:\\Local_git\\Study_2026\\workflow101\\**"]
-    },
-    {
-      "action": "file-write",
-      "paths": [
-        "F:\\Local_git\\Study_2026\\workflow101\\app\\**",
-        "F:\\Local_git\\Study_2026\\workflow101\\tests\\**",
-        "F:\\Local_git\\Study_2026\\workflow101\\.opencode\\**",
-        "F:\\Local_git\\Study_2026\\workflow101\\docs\\**"
-      ]
-    },
-    {
-      "action": "command",
-      "commands": ["npm", "npx", "git", "node"]
-    }
-  ],
-  "context": {
-    "instructions": [
-      ".opencode/instructions/project-context.md",
-      ".opencode/instructions/lessons.md",
-      ".opencode/instructions/patterns.md",
-      ".opencode/instructions/error-solutions.md"
-    ],
-    "memory": {
-      "type": "knowledge-graph",
-      "entities": ["workflow101-project", "agent-orchestrator", "e2e-test-failures"]
-    }
-  }
+  "instructions": [
+    ".agents/AGENTS.md",
+    ".opencode/instructions/project-context.md",
+    ".opencode/instructions/lessons.md",
+    ".opencode/instructions/patterns.md",
+    ".opencode/instructions/error-solutions.md"
+  ]
 }

@@ -54,3 +54,10 @@
 - Test error paths, not just happy paths
 - 80%+ coverage target for critical code
 - E2E: use `data-testid` attributes to avoid text selector ambiguity
+
+## Handoff & Self-Learning System
+- **Every session must create a handoff file** in `.agents/handoffs/` before ending
+- **Handoff files use YAML frontmatter** for machine-parseable metadata
+- **Discoveries logged immediately** — not batched at end of session
+- **Pre-commit checklist** now includes handoff file creation and validation
+- **Guardrails enforced** by all agents, across all tools

@@ -122,3 +122,61 @@ function withTimeout<T>(promise: Promise<T>, ms: number, errorMessage?: string):
   ]);
 }
 ```
+
+## 9. Handoff File Pattern
+```yaml
+---
+handoff_version: "1.0"
+session_id: "YYYYMMDD-session-NNN"
+timestamp: "YYYY-MM-DDTHH:MM:SSZ"
+source_agent: "agent-id"
+target_agent: "*"
+project: "workflow101"
+context:
+  branch: "main"
+  last_commit: "abc123"
+  tasks_completed: ["task1", "task2"]
+  tasks_pending: ["task3"]
+discoveries:
+  - domain: "DBOS"
+    finding: "launch() hangs without timeout"
+    severity: "critical"
+    action: "Wrap in 5s timeout"
+errors:
+  - error: "ERR_MODULE_NOT_FOUND"
+    solution: "Dynamic import with ssr:false"
+    frequency: 3
+next_session:
+  priority: ["Fix CI pipeline"]
+  warnings: ["DBOS may hang on first load"]
+tags: ["feature:auth", "fix:timeout"]
+---
+```
+
+## 10. Session Lifecycle Pattern
+```typescript
+// Every session MUST follow:
+// START → WORK → HANDOFF → END
+
+// START:
+// 1. Load .agents/AGENTS.md
+// 2. Load guardrails/lifecycle/memory
+// 3. Read latest handoff file
+// 4. Understand project state
+
+// WORK:
+// 1. Execute tasks (TDD preferred)
+// 2. Log discoveries to memory.md immediately
+// 3. Run tests after each change
+
+// HANDOFF:
+// 1. Run pre-commit checks
+// 2. Update CHANGELOG.md, TODOS.md
+// 3. Create handoff file
+// 4. Update memory.md
+
+// END:
+// 1. Verify build/tests pass
+// 2. Create PR / commit
+// 3. Done
+```

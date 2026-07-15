@@ -6,6 +6,67 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **Agent Handoff & Self-Learning System** (`.agents/`)
+  - Agent-agnostic configuration shared across all AI tools
+  - `.agents/AGENTS.md` — Master agent config (entry point for CLAUDE.md, opencode.json)
+  - `.agents/rules/guardrails.md` — 21 universal guardrails across 5 categories
+  - `.agents/rules/lifecycle.md` — Session lifecycle: START → WORK → HANDOFF → END
+  - `.agents/rules/agents.yaml` — 8 tool-agnostic agent role definitions
+  - `.agents/memory.md` — Persistent cross-session memory (append-only)
+  - `.agents/handoffs/HANDOFF_SCHEMA.md` — Handoff file format specification (v1.0)
+  - `.agents/patterns/handoff-patterns.md` — 6 reusable handoff scenarios
+  - `.agents/templates/handoff-template.md` — Handoff file template
+
+- **Handoff Management Scripts** (`.agents/scripts/`)
+  - `create-handoff.cjs` — Auto-generates handoff files with YAML frontmatter
+  - `read-handoff.cjs` — Reads and parses handoff files with formatted output
+  - `validate-handoff.cjs` — Validates handoff files against schema
+
+- **Knowledge Base Updates** (`.opencode/instructions/`)
+  - `lessons.md` — Added handoff and self-learning system lessons
+  - `patterns.md` — Added handoff file pattern and session lifecycle pattern
+  - `error-solutions.md` — Added handoff validation errors and session continuity loss solutions
+  - `project-context.md` — Added Agent System section with .agents/ architecture
+
+### Changed
+
+- **AGENTS.md** — Restructured with handoff mechanism section, load order, and .agents/ architecture
+- **CLAUDE.md** — Simplified to reference `.agents/AGENTS.md` only (no duplication)
+- **opencode.json** — Added `.agents/AGENTS.md` to instructions array
+- **.gitignore** — Added handoff file patterns to ignore list
+
+### Fixed
+
+### Removed
+
+- **Vercel project** `workflow101` deleted (was referencing deleted Supabase DB)
+- **Supabase configuration** from `.env` and `.env.local` files
+
+### Security
+
+- **Pre-commit Security Hook** (`scripts/pre-commit-security.js`)
+  - Automatic detection of hardcoded secrets
+  - Pattern matching for API keys, passwords, tokens
+  - Scans TypeScript, JavaScript, JSON, YAML files
+  - Safe patterns for localhost/dev credentials
+  - Command: `npm run security:check`
+  - Install hook: `npm run security:install-hooks`
+
+- **Secret Management**
+  - `.gitignore` updated with comprehensive secret file patterns
+  - Real secrets removed from `.env` (moved to `.env.local`)
+  - All database connections read from environment variables
+  - AGENTS.md updated with security rules
+
+- **Known Vulnerability Disclosure**
+  - Created `SECURITY.md` documenting known vulnerabilities
+  - Transitive dependencies from `workflow` package (beta)
+  - Undici WebSocket vulnerabilities (pending upstream fix)
+  - Devaluate prototype pollution (pending upstream fix)
+  - Mitigation strategies documented
+
+### Added
+
 - **Visual Workflow Analysis** (`workflow-analysis/`)
   - 13 screenshots captured across all 12 pages
   - Comprehensive `BUILT_BUGS.md` with bug tracking, API endpoint status, UX findings
@@ -49,141 +110,6 @@ All notable changes to this project will be documented in this file.
 
 - **PRD.md** — Enhanced with Section 8: Agent Orchestrator (vision, architecture, components, self-learning loop, token optimization, implementation phases)
 
-### Fixed
-
-- **E2E Config selector** — `text=Choose the workflow` matched 2 elements
-  - Added `data-testid="config-description"` to `app/config/page.tsx`
-  - Updated `tests/e2e/pages/ConfigPage.ts` to use `[data-testid="config-description"]`
-
-- **`/api/dbos` endpoint timeout** — `DBOS.launch()` at module level caused hanging
-  - Made `DBOS.launch()` lazy with `initDBOS()` function (runs on first request only)
-  - Added 5s timeout wrapper around initialization
-  - Returns 503 with error message when DBOS unavailable
-
-- **`/api/workflows` endpoint timeout** — `listWorkflows()` hung when DB unavailable
-  - Wrapped `DBOSClient.create()` with 5s timeout in `app/actions.ts`
-  - Added 10s timeout wrapper in `app/api/workflows/route.ts`
-  - Returns 504 on timeout, fail fast with `{ success: false, error }`
-
-- **`/docs` page Swagger UI** — `@swagger-api/apidom-core` imported Node.js `module` built-in
-  - Changed to `dynamic(() => import('swagger-ui-react'), { ssr: false })`
-  - Added Turbopack `resolveAlias` for `@swagger-api/apidom-core` → CJS version
-  - Browser bundle no longer fails on `import { createRequire } from "module"`
-
-### Changed
-
-- **Removed Supabase dependency** (project `vclwajxnqslrwkwkhwrw` deleted)
-  - Switched to local PostgreSQL only
-  - Deleted `app/utils/supabase/` utility files
-  - Deleted `supabase/` directory with migrations
-  - Updated `app/lib/services.ts` to use `pg` (node-postgres) instead of Supabase client
-  - Updated `app/lib/observability.ts` to use `pg` instead of Supabase client
-  - Created `app/lib/db.ts` - local PostgreSQL connection pool and helpers
-  - Simplified `app/lib/database-config.ts` to always return local config
-  - Replaced "Supabase" tab in observability page with "Database" tab
-  - Removed `scripts/test-supabase-connection.js`
-  - Updated `scripts/test-db-config.js` for local-only
-  - Removed `@supabase/ssr` and `@supabase/supabase-js` dependencies
-  - Added `pg` and `@types/pg` dependencies
-  - Updated `package.json` scripts
-  - Database schema auto-initializes on first use via `app/lib/db.ts`
-
-### Removed
-
-- **Vercel project** `workflow101` deleted (was referencing deleted Supabase DB)
-- **Supabase configuration** from `.env` and `.env.local` files
-
-### Fixed
-
-- **Repaired corrupted `node_modules/`** (from failed earlier `npm install`)
-  - Fixed 0-byte/corrupted files in: `source-map`, `pg-types`, `postgres-*`, `tldts`, `symbol-tree`, `fdir`, `magic-string`, `tinyglobby`, `obuf`, `ulid`, `swagger-ui-*`, `@testing-library/*`
-  - Restored missing transitive dependencies: `pg-numeric`, `pg-int8`, `asynckit`, `dequal`, `lz-string`, `pretty-format`, `react-is`, `js-tokens`, `aria-query`, `dom-accessibility-api`
-  - Replaced corrupted `@next/swc-win32-x64-msvc` binary (was not valid Win32 app)
-- **Deleted corrupted `package-lock.json`** and regenerated cleanly
-- **Added `dev-server.log` and `test-results/` to `.gitignore`**
-
-### Added
-
-- **Initialized custom database tables** (4 tables in `public` schema):
-  - `workflow_executions` - tracks workflow run state
-  - `workflow_configs` - workflow configuration storage
-  - `approvals` - approval workflow tracking
-  - `audit_logs` - event audit trail
-
-- **Vercel Blob Integration** (`app/lib/blob-utils.ts`)
-  - Server-side blob upload utilities
-  - `uploadBlob()`, `listBlobs()`, `deleteBlob()` functions
-  - Workflow file management helpers
-  - File upload page (`/files`)
-  - Client-side upload API route (`/api/blob`)
-  - Progress tracking for uploads
-
-- **Vercel Analytics**
-  - Installed `@vercel/analytics` package
-  - Analytics component in root layout
-  - Web analytics tracking enabled
-
-- **OpenTelemetry Tracing** (`instrumentation.ts`)
-  - Created `instrumentation.ts` for OpenTelemetry setup
-  - Uses `@vercel/otel` for Vercel integration
-  - Service name: `workflow101`
-  - Automatic context propagation
-
-- **Sentry Integration**
-  - Full Sentry configuration in environment variables
-  - Error tracking and distributed tracing
-  - OTLP endpoint for trace export
-  - Auth token for CI/CD deployments
-
-- **Sentry Metrics**
-  - Created `app/lib/sentry-metrics.ts` with workflow tracking utilities
-  - Metrics: `workflow_status_count`, `workflow_runtime_ms`, `workflow_queue_depth`
-  - Metrics: `workflow_enqueued`, `workflow_type_count`, `workflow_scheduled`
-  - Metrics: `api_response_time_ms`, `database_operation_time_ms`
-  - Added Sentry Metrics tab to observability page
-
-- **Workflow Updates**
-  - Updated workflows to use native `sleep` from workflow package
-  - Added sleep delays for realistic workflow patterns (onboarding: 9s total)
-  - Created `/workflow-status` page for real-time workflow monitoring
-  - Queue page now links to workflow status and observability pages
-
-- **Vercel Configuration** (`vercel.json`)
-  - Updated schema URL to `https://openapi.vercel.sh/vercel.json`
-  - Queue triggers using `triggers` instead of `experimentalTriggers`
-  - Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
-  - Added `installCommand` to use pnpm with `--no-frozen-lockfile`
-  - Removed conflicting `functions.triggers` (queues configured via UI)
-
-- **Dependency Fixes**
-  - Updated `workflow` version to `4.2.0-beta.71` to match lockfile
-  - Updated `vitest` version to `^4.1.1` to match lockfile
-  - Created `sentry.properties` for Sentry configuration
-  - Switched to pnpm (removed package-lock.json)
-
-### Security
-- **Pre-commit Security Hook** (`scripts/pre-commit-security.js`)
-  - Automatic detection of hardcoded secrets
-  - Pattern matching for API keys, passwords, tokens
-  - Scans TypeScript, JavaScript, JSON, YAML files
-  - Safe patterns for localhost/dev credentials
-  - Command: `npm run security:check`
-  - Install hook: `npm run security:install-hooks`
-
-- **Secret Management**
-  - `.gitignore` updated with comprehensive secret file patterns
-  - Real secrets removed from `.env` (moved to `.env.local`)
-  - All database connections read from environment variables
-  - AGENTS.md updated with security rules
-
-- **Known Vulnerability Disclosure**
-  - Created `SECURITY.md` documenting known vulnerabilities
-  - Transitive dependencies from `workflow` package (beta)
-  - Undici WebSocket vulnerabilities (pending upstream fix)
-  - Devaluate prototype pollution (pending upstream fix)
-  - Mitigation strategies documented
-
-### Added
 - **Vercel Queues Integration**
   - Queue producer utilities (`app/lib/queue-producer.ts`)
   - Queue consumer route (`app/api/queue/workflow/route.ts`)
