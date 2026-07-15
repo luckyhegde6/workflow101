@@ -57,6 +57,8 @@ Each entry has a timestamp and source session ID.
 | 2026-07-16 | Node.js builtins in browser bundles cause ERR_MODULE_NOT_FOUND | Dynamic import with ssr:false + resolve alias | initial |
 | 2026-07-16 | rmdir /s /q node_modules hangs on Windows (antivirus) | Temp directory install + xcopy, never delete node_modules | initial |
 | 2026-07-16 | F: drive file operations are slow | Minimize file I/O, batch reads/writes | initial |
+| 2026-07-16 | DBOS.now() returns Promise<number> (ms since epoch), not Date | Must use new Date(await DBOS.now()).toISOString() | bugfixes-and-cleanup |
+| 2026-07-16 | client.enqueue(config, ...args) — second arg is workflow params | Without it, workflow receives undefined | bugfixes-and-cleanup |
 
 ---
 
@@ -103,6 +105,7 @@ Each entry has a timestamp and source session ID.
 | initial | 2026-07-16 | — | Initial memory seed — project architecture, decisions, issues |
 | 2026-07-16-handoff-system-init | 2026-07-16 | orchestrator | Created .agents/ handoff system with 21 guardrails, 15 agent roles, lifecycle, 6 patterns, 3 scripts |
 | 2026-07-16-agent-expansion | 2026-07-16 | orchestrator | Added 7 new agent roles: gh-helper, bug-fixer, e2e-agent, integrator, observability, devops, qa. Created command files and updated configs |
+| 2026-07-16-bugfixes-and-cleanup | 2026-07-16 | developer | Fixed retryWorkflow enqueue params bug, replaced non-deterministic new Date() with DBOS.now() in 6 workflow functions. Added .dev-server.pid and monitor.ps1 to gitignore. |
 
 ---
 
@@ -113,3 +116,5 @@ Each entry has a timestamp and source session ID.
 | 2026-07-16 | Initial creation — seeded with project architecture, decisions, issues |
 | 2026-07-16 | Added handoff system: .agents/ with 21 guardrails, 8 agent roles, lifecycle, 6 patterns, 3 scripts |
 | 2026-07-16 | Expanded to 15 agent roles: added gh-helper, bug-fixer, e2e-agent, integrator, observability, devops, qa |
+| 2026-07-16 | DBOS.now() returns Promise<number>, not Date() — must wrap with new Date(await DBOS.now()).toISOString() |
+| 2026-07-16 | PR #5 (handoff system) and PR #6 (agent expansion) both merged to main |
