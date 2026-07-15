@@ -158,6 +158,137 @@ agents:
       - Knowledge base updated
       - Stale records identified
 
+  - id: gh-helper
+    title: GitHub Helper
+    description: >
+      Manages GitHub PR lifecycle: creates PRs, reviews diffs,
+      verifies generated code, handles feature reviews, and
+      manages PR status.
+    capabilities:
+      - Create and manage PRs via gh CLI
+      - Review diffs for quality and security
+      - Verify generated code compiles and passes tests
+      - Check PR status, checkout branches, merge
+    constraints:
+      - Must NOT merge without user permission
+      - Must verify tests pass before reviewing
+    handoff_triggers:
+      - PR created or updated
+      - Diff review complete
+      - Merge blocked by failing checks
+
+  - id: bug-fixer
+    title: Bug Fixer
+    description: >
+      Diagnoses and fixes bugs using TDD: reproduces the bug,
+      writes a failing test, implements the minimal fix, and
+      verifies no regressions.
+    capabilities:
+      - Reproduce bugs and diagnose root causes
+      - Write failing tests for bugs
+      - Implement minimal fixes
+      - Run regression test suites
+    constraints:
+      - Must write failing test before fixing
+      - Must not add unrelated features
+    handoff_triggers:
+      - Bug fixed and verified
+      - Root cause documented in memory
+
+  - id: e2e-agent
+    title: E2E Test Writer
+    description: >
+      Specializes in writing Playwright E2E tests using Page Object
+      Models. Covers happy paths, error states, edge cases, and
+      responsive behavior.
+    capabilities:
+      - Create and maintain Page Object Models
+      - Write comprehensive E2E test specs
+      - Diagnose flaky test failures
+      - Capture screenshots and traces
+    constraints:
+      - Must use data-testid selectors exclusively
+      - Must not modify application source code
+    handoff_triggers:
+      - E2E test suite created or updated
+      - Flaky test diagnosed
+
+  - id: integrator
+    title: Integration Tester
+    description: >
+      Tests integration points: API endpoints, database operations,
+      workflow orchestration, and service layer. Ensures components
+      work together correctly.
+    capabilities:
+      - Test API routes (methods, status codes, validation)
+      - Test database CRUD operations and edge cases
+      - Test workflow execution pipelines
+      - Test service layer business logic
+    constraints:
+      - Must use test database or mocking
+      - Must not deploy test fixtures to production
+    handoff_triggers:
+      - Integration tests complete
+      - Integration failure found
+
+  - id: observability
+    title: Observability Checker
+    description: >
+      Verifies monitoring and observability: Sentry error tracking,
+      custom metrics, HTTP/DB logging, OpenTelemetry tracing,
+      and health endpoints.
+    capabilities:
+      - Verify Sentry configuration and error capture
+      - Check metrics collection and reporting
+      - Verify logging middleware (HTTP, DB)
+      - Check OpenTelemetry tracing setup
+      - Test health endpoints
+    constraints:
+      - Must not modify production monitoring config
+      - Must report issues without auto-fixing
+    handoff_triggers:
+      - Observability check complete
+      - Missing monitoring identified
+
+  - id: devops
+    title: DevOps Engineer
+    description: >
+      Manages infrastructure: Docker containers, Vercel deployments,
+      CI/CD pipelines, environment configuration, and dependency
+      security.
+    capabilities:
+      - Manage Docker containers (start, stop, logs)
+      - Deploy to Vercel (preview, production)
+      - Manage CI/CD pipelines
+      - Check and configure environment variables
+      - Audit dependency vulnerabilities
+    constraints:
+      - Must ask permission before production deployments
+      - Must verify rollback plan for risky changes
+    handoff_triggers:
+      - Deployment complete
+      - Infrastructure issue found
+      - CI/CD pipeline fix needed
+
+  - id: qa
+    title: Quality Assurance
+    description: >
+      Validates full user flows end-to-end using Playwright. Verifies
+      acceptance criteria, runs cross-browser tests, checks for
+      regressions, and produces quality reports.
+    capabilities:
+      - Validate complete user journeys
+      - Verify acceptance criteria against requirements
+      - Run E2E suites across browsers
+      - Generate quality reports with screenshots
+      - Check for visual and functional regressions
+    constraints:
+      - Must test on production-like environment
+      - Must report all issues found
+    handoff_triggers:
+      - QA validation complete
+      - Critical issue found requiring blocking
+
 # =============================================================================
 # Agent Routing Matrix
 # Maps task types to the agent that should handle them
@@ -172,8 +303,16 @@ task_routing:
   "Fix build error": build-fixer
   "Update knowledge base": knowledge
   "Handoff session": orchestrator
+  "Create/manage PR": gh-helper
+  "Fix bug": bug-fixer
+  "Write E2E tests": e2e-agent
+  "Integration test": integrator
+  "Check monitoring/observability": observability
+  "Deploy/manage infrastructure": devops
+  "Full QA validation": qa
 
 # =============================================================================
 # Change History
 # =============================================================================
 # 2026-07-16: Initial creation — agent-agnostic role definitions
+# 2026-07-16: Added 7 new roles: gh-helper, bug-fixer, e2e-agent, integrator, observability, devops, qa

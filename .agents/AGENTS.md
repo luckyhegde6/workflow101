@@ -112,6 +112,7 @@ and can be fulfilled by any AI coding tool:
 
 | Role ID          | Title                    | Primary Responsibility                          |
 |------------------|--------------------------|--------------------------------------------------|
+| `orchestrator`   | Session Orchestrator     | Route tasks, manage handoffs, enforce lifecycle  |
 | `planner`        | Implementation Planner   | Break features into tasks, estimate effort       |
 | `developer`      | Feature Developer        | Write implementation code (TDD)                  |
 | `reviewer`       | Code Reviewer            | Review code quality, DBOS patterns, security     |
@@ -119,7 +120,13 @@ and can be fulfilled by any AI coding tool:
 | `security`       | Security Reviewer        | Audit secrets, inputs, auth, dependencies        |
 | `build-fixer`    | Build Resolver           | Fix build, TypeScript, and module errors         |
 | `knowledge`      | Knowledge Base Curator   | Maintain .agents/, memory, lessons, patterns     |
-| `orchestrator`   | Session Orchestrator     | Route tasks, manage handoffs, enforce lifecycle  |
+| `gh-helper`      | GitHub Helper            | PR management, diff review, code verification    |
+| `bug-fixer`      | Bug Fixer                | Bug diagnosis and TDD fix                        |
+| `e2e-agent`      | E2E Test Writer          | Write Playwright E2E tests with Page Objects    |
+| `integrator`     | Integration Tester       | API, DB, and workflow integration testing        |
+| `observability`  | Observability Checker    | Sentry, metrics, logs, tracing verification      |
+| `devops`         | DevOps Engineer          | Docker, Vercel, CI/CD, infrastructure            |
+| `qa`             | Quality Assurance        | Full flow validation, acceptance criteria check  |
 
 These roles are defined in detail in `.agents/rules/agents.yaml`.
 

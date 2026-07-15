@@ -44,6 +44,8 @@ Each entry has a timestamp and source session ID.
 | 2026-07-16 | initial | **Local PostgreSQL Only**: Supabase project deleted, all DB via `pg` (node-postgres) |
 | 2026-07-16 | initial | **Handoff File System**: `.agents/handoffs/` for cross-session handoff, YAML frontmatter + Markdown |
 | 2026-07-16 | initial | **Agent-Agnostic Config**: `.agents/AGENTS.md` as single source of truth, referenced by all tools |
+| 2026-07-16 | handoff-system-init | **Expanded Agent Roles**: Added 7 new agents (gh-helper, bug-fixer, e2e-agent, integrator, observability, devops, qa) to complement original 8 |
+| 2026-07-16 | handoff-system-init | **Agent Commands**: 13 commands now available: plan, tdd, code-review, security, build-fix, e2e, e2e-write, pr, integrate, observe, deploy, qa, bug-fix |
 
 ---
 
@@ -96,6 +98,12 @@ Each entry has a timestamp and source session ID.
 | initial | 2026-07-16 | — | Initial memory seed — project architecture, decisions, issues |
 | 2026-07-16-handoff-system-init | 2026-07-16 | orchestrator | Created .agents/ handoff system with 21 guardrails, 8 agent roles, lifecycle, 6 patterns, 3 scripts |
 
+| Session ID | Date | Agent | Summary |
+|------------|------|-------|---------|
+| initial | 2026-07-16 | — | Initial memory seed — project architecture, decisions, issues |
+| 2026-07-16-handoff-system-init | 2026-07-16 | orchestrator | Created .agents/ handoff system with 21 guardrails, 15 agent roles, lifecycle, 6 patterns, 3 scripts |
+| 2026-07-16-agent-expansion | 2026-07-16 | orchestrator | Added 7 new agent roles: gh-helper, bug-fixer, e2e-agent, integrator, observability, devops, qa. Created command files and updated configs |
+
 ---
 
 ## Change History
@@ -104,3 +112,4 @@ Each entry has a timestamp and source session ID.
 |------|--------|
 | 2026-07-16 | Initial creation — seeded with project architecture, decisions, issues |
 | 2026-07-16 | Added handoff system: .agents/ with 21 guardrails, 8 agent roles, lifecycle, 6 patterns, 3 scripts |
+| 2026-07-16 | Expanded to 15 agent roles: added gh-helper, bug-fixer, e2e-agent, integrator, observability, devops, qa |

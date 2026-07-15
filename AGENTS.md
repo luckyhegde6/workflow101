@@ -115,6 +115,13 @@ node .agents/scripts/validate-handoff.cjs
 | `security` | Secret scanning, input validation, dependency audit | Audit complete |
 | `build-fixer` | Fix TypeScript, module, build errors | Build fixed |
 | `knowledge` | Maintain .agents/, memory, lessons, patterns | KB updated |
+| `gh-helper` | PR management, diff review, code verification | PR created, review done |
+| `bug-fixer` | Bug diagnosis and TDD fix | Bug fixed, root cause documented |
+| `e2e-agent` | Write E2E tests with Page Objects | Test suite written |
+| `integrator` | API/DB/workflow integration testing | Integration tests done |
+| `observability` | Sentry, metrics, logging, tracing check | Observability verified |
+| `devops` | Docker, Vercel, CI/CD, infrastructure | Deployed, infrastructure managed |
+| `qa` | Full flow validation, acceptance criteria | QA validation complete |
 
 ## Self-Learning Loop
 
@@ -554,6 +561,13 @@ The project uses an OpenCode-based agent orchestrator with self-learning feedbac
 | `e2e-runner` | e2e | read, test, browser | 4000 |
 | `build-resolver` | build-fix | read, write, test | 6000 |
 | `security-reviewer` | security | read, search, think | 4000 |
+| `gh-helper` | pr | read, bash | 4000 |
+| `bug-fixer` | bug-fix | read, write, test | 6000 |
+| `e2e-agent` | e2e-write | read, write, test, browser | 4000 |
+| `integrator` | integrate | read, write, test | 4000 |
+| `observability` | observe | read, search, think | 4000 |
+| `devops` | deploy | read, bash | 4000 |
+| `qa` | qa | read, write, test, browser | 6000 |
 
 ### Knowledge Base (`.opencode/instructions/`)
 
@@ -588,14 +602,21 @@ See `docs/adr/` for full decision records:
 
 ## OpenCode Agent Commands
 
-| Command | Purpose |
-|---------|---------|
-| `/plan <feature>` | Create implementation plan |
-| `/tdd <feature>` | Test-driven development |
-| `/code-review` | Review code changes |
-| `/security` | Security review |
-| `/build-fix` | Fix build errors |
-| `/e2e` | Run E2E tests |
+| Command | Agent | Purpose |
+|---------|-------|---------|
+| `/plan <feature>` | planner | Create implementation plan |
+| `/tdd <feature>` | tdd-guide | Test-driven development |
+| `/code-review` | code-reviewer | Review code quality and security |
+| `/security` | security-reviewer | Security audit |
+| `/build-fix` | build-error-resolver | Fix build errors |
+| `/e2e` | e2e-runner | Run Playwright E2E tests |
+| `/e2e-write` | e2e-agent | Write E2E tests with Page Objects |
+| `/pr` | gh-helper | GitHub PR management and diff review |
+| `/integrate` | integrator | Integration testing |
+| `/observe` | observability | Check monitoring and observability |
+| `/deploy` | devops | Docker, Vercel, CI/CD management |
+| `/qa` | qa | Full QA validation and flow testing |
+| `/bug-fix` | bug-fixer | Diagnose and fix bugs (TDD) |
 
 ## Success Metrics
 

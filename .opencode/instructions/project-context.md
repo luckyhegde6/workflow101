@@ -16,10 +16,28 @@ An "everything workflows" system that orchestrates durable, fault-tolerant workf
 - **Configuration**: `.agents/AGENTS.md` — agent-agnostic, shared across all tools
 - **Guardrails**: `.agents/rules/guardrails.md` — 21 guardrails across 5 categories
 - **Session Lifecycle**: `.agents/rules/lifecycle.md` — START → WORK → HANDOFF → END
-- **Agent Roles**: `.agents/rules/agents.yaml` — 8 roles (orchestrator, planner, developer, reviewer, e2e-tester, security, build-fixer, knowledge)
+- **Agent Roles**: `.agents/rules/agents.yaml` — 15 roles (orchestrator, planner, developer, reviewer, e2e-tester, security, build-fixer, knowledge, gh-helper, bug-fixer, e2e-agent, integrator, observability, devops, qa)
 - **Handoff Files**: `.agents/handoffs/YYYYMMDD-HHMMSS-<agent>-<label>.md` — YAML frontmatter + Markdown
 - **Memory**: `.agents/memory.md` — append-only cross-session memory
 - **Scripts**: create-handoff.cjs, read-handoff.cjs, validate-handoff.cjs
+
+### Agent Commands
+
+| Command | Agent | Purpose |
+|---------|-------|---------|
+| `/plan` | planner | Create implementation plan |
+| `/tdd` | tdd-guide | Test-driven development |
+| `/code-review` | code-reviewer | Review code quality and security |
+| `/security` | security-reviewer | Security audit |
+| `/build-fix` | build-error-resolver | Fix build errors |
+| `/e2e` | e2e-runner | Run Playwright E2E tests |
+| `/e2e-write` | e2e-agent | Write E2E tests with Page Objects |
+| `/pr` | gh-helper | GitHub PR management and diff review |
+| `/integrate` | integrator | Integration testing |
+| `/observe` | observability | Check monitoring and observability |
+| `/deploy` | devops | Docker, Vercel, CI/CD management |
+| `/qa` | qa | Full QA validation and flow testing |
+| `/bug-fix` | bug-fixer | Diagnose and fix bugs (TDD) |
 
 ## Key Architecture Decisions
 - **Local PostgreSQL only** — Supabase project deleted; all DB via `pg` (node-postgres)
