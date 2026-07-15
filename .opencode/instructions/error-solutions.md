@@ -72,3 +72,31 @@ npm run db:up
 npm run db:config
 ```
 Verify connection string priority: `DBOS_SYSTEM_DATABASE_URL` > `POSTGRES_URL_NON_POOLING` > `DATABASE_URL` > `postgresql://postgres:postgres@localhost:5432/workflow101`
+
+## 8. Handoff Validation Errors
+**Symptom**: Handoff script fails or reports invalid format
+**Cause**: Missing required fields in YAML frontmatter; incorrect timestamp format; no discoveries logged
+**Solution**: 
+```bash
+# Validate handoff format
+node .agents/scripts/validate-handoff.cjs
+
+# Check specific errors — ensure all required fields present
+# handoff_version, session_id, timestamp, source_agent, target_agent, project
+```
+Required fields: `handoff_version`, `session_id`, `timestamp`, `source_agent`, `target_agent`, `project`
+
+## 9. Session Continuity Loss
+**Symptom**: New session starts without context from previous session
+**Cause**: Handoff file not created or not read; memory.md not updated
+**Solution**:
+```bash
+# Check for existing handoffs
+node .agents/scripts/read-handoff.cjs
+
+# Read all handoffs
+node .agents/scripts/read-handoff.cjs --all
+
+# Create handoff before session end
+node .agents/scripts/create-handoff.cjs <session-label>
+```

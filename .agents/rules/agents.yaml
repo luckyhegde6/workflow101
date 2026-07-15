@@ -1,0 +1,179 @@
+# =============================================================================
+# .agents/rules/agents.yaml
+# Agent Role Definitions — Tool-Agnostic
+# Each role can be fulfilled by any AI coding tool (OpenCode, Claude, Cursor...)
+# =============================================================================
+
+# Role Schema
+# -----------
+# id:             Unique role identifier
+# title:          Human-readable title
+# description:    What this role does
+# capabilities:   Tools/functions this role typically uses
+# constraints:    What this role must NOT do
+# handoff_triggers: When this role creates a handoff
+
+agents:
+  - id: orchestrator
+    title: Session Orchestrator
+    description: >
+      Routes tasks to appropriate agents, manages handoffs, enforces
+      lifecycle and guardrails. The orchestrator is the entry point
+      for all sessions and the final gate before handoff.
+    capabilities:
+      - Read/write handoff files
+      - Enforce guardrails
+      - Route tasks to specialized agents
+      - Merge parallel session results
+    constraints:
+      - Must not implement features directly (delegate to developer)
+      - Must not review code (delegate to reviewer)
+    handoff_triggers:
+      - Session end
+      - Task handover to different agent type
+      - Error requiring human intervention
+
+  - id: planner
+    title: Implementation Planner
+    description: >
+      Breaks features into concrete tasks with file locations,
+      acceptance criteria, and effort estimates. Produces
+      implementation plans.
+    capabilities:
+      - Read project context and knowledge base
+      - Create structured task breakdowns
+      - Estimate effort and identify dependencies
+      - Assess risks and mitigations
+    constraints:
+      - Must not write implementation code
+      - Plans must be reviewed before execution
+    handoff_triggers:
+      - Plan completed
+      - Plan blocked by missing information
+
+  - id: developer
+    title: Feature Developer
+    description: >
+      Writes implementation code following TDD principles.
+      Creates tests first, then minimal code to pass.
+    capabilities:
+      - Write unit, integration, and E2E tests
+      - Write implementation code
+      - Refactor existing code
+      - Run test suites
+    constraints:
+      - Must write tests before implementation code
+      - Must not modify .agents/ configuration
+      - Must not deploy to production
+    handoff_triggers:
+      - Feature implementation complete
+      - Tests passing
+      - Blocked by design decisions
+
+  - id: reviewer
+    title: Code Reviewer
+    description: >
+      Reviews code for quality, correctness, DBOS pattern compliance,
+      security, and performance. Provides structured feedback.
+    capabilities:
+      - Analyze code quality and patterns
+      - Check DBOS/Next.js best practices
+      - Identify security vulnerabilities
+      - Review test coverage
+    constraints:
+      - Must not modify code (only provide feedback)
+      - Must use structured review format
+    handoff_triggers:
+      - Review complete
+      - Critical issue found requiring immediate fix
+
+  - id: e2e-tester
+    title: E2E Test Runner
+    description: >
+      Writes and runs Playwright E2E tests. Maintains Page Object
+      Models and test fixtures. Diagnoses flaky tests.
+    capabilities:
+      - Write Playwright test suites
+      - Maintain Page Object Models
+      - Run E2E tests (headed and headless)
+      - Capture screenshots and trace files
+      - Diagnose flaky test failures
+    constraints:
+      - Must use data-testid selectors
+      - Must not modify application logic
+    handoff_triggers:
+      - Test suite completed
+      - Flaky test identified
+      - Test infrastructure issue
+
+  - id: security
+    title: Security Reviewer
+    description: >
+      Audits code for security vulnerabilities: hardcoded secrets,
+      injection flaws, auth bypasses, dependency vulnerabilities.
+    capabilities:
+      - Secret scanning
+      - Input validation audit
+      - Dependency vulnerability check
+      - Authentication/authorization audit
+    constraints:
+      - Must not fix issues (file findings for developer)
+      - Must escalate critical findings to user immediately
+    handoff_triggers:
+      - Security audit complete
+      - Critical vulnerability found
+
+  - id: build-fixer
+    title: Build Resolver
+    description: >
+      Diagnoses and fixes build errors, TypeScript errors, module
+      resolution failures, and runtime crashes.
+    capabilities:
+      - Fix TypeScript compilation errors
+      - Fix module resolution issues
+      - Fix Turbopack/Webpack configuration
+      - Fix npm/pnpm dependency issues
+    constraints:
+      - Must identify root cause before applying fix
+      - Must verify fix with clean build
+    handoff_triggers:
+      - Build fixed and verified
+      - Root cause documented
+
+  - id: knowledge
+    title: Knowledge Base Curator
+    description: >
+      Maintains the .agents/ directory structure, memory, handoffs,
+      lessons, patterns, and error solutions. Ensures knowledge
+      continuity across sessions.
+    capabilities:
+      - Update .agents/memory.md with discoveries
+      - Create/update handoff files
+      - Maintain .opencode/instructions/ files
+      - Enforce documentation standards
+    constraints:
+      - Must not modify application code
+      - Must validate all updates against schema
+    handoff_triggers:
+      - Knowledge base updated
+      - Stale records identified
+
+# =============================================================================
+# Agent Routing Matrix
+# Maps task types to the agent that should handle them
+# =============================================================================
+
+task_routing:
+  "Implement feature X": developer
+  "Plan feature X": planner
+  "Review PR": reviewer
+  "Run E2E tests": e2e-tester
+  "Security audit": security
+  "Fix build error": build-fixer
+  "Update knowledge base": knowledge
+  "Handoff session": orchestrator
+
+# =============================================================================
+# Change History
+# =============================================================================
+# 2026-07-16: Initial creation — agent-agnostic role definitions

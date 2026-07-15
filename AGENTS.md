@@ -1,3 +1,13 @@
+<!-- BEGIN:agents-system -->
+<!--
+╔══════════════════════════════════════════════════════════════╗
+║                   AGENTS.md (Root)                            ║
+║  This file delegates to .agents/AGENTS.md                     ║
+║  DO NOT duplicate rules here — reference .agents/ instead     ║
+╚══════════════════════════════════════════════════════════════╝
+-->
+<!-- END:agents-system -->
+
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 
@@ -14,6 +24,131 @@ This version has breaking changes — APIs, conventions, and file structure may 
 5. **Plan Before Execute** — Plan complex features before writing code
 6. **Continuous Learning** — Document patterns, extract lessons, avoid repetitions
 <!-- END:core-principles -->
+
+<!-- BEGIN:agents-handoff-system -->
+
+---
+
+# Agent Handoff & Self-Learning System
+
+This project implements a **handoff file mechanism** for cross-session knowledge continuity, agent-agnostic configuration, and enforced self-learning loops.
+
+## Architecture
+
+```
+AGENTS.md                         ← Entry point (this file)
+├── .agents/AGENTS.md             ← Master agent config (all tools reference this)
+│   ├── rules/guardrails.md       ← Universal guardrails (process, security, files)
+│   ├── rules/lifecycle.md        ← Session lifecycle (start → handoff → end)
+│   ├── rules/agents.yaml         ← 8 agent role definitions
+│   ├── handoffs/HANDOFF_SCHEMA.md ← Handoff file format (YAML + Markdown)
+│   ├── patterns/handoff-patterns.md ← 6 reusable handoff patterns
+│   ├── templates/handoff-template.md ← Handoff file template
+│   ├── scripts/create-handoff.cjs  ← Generate handoff file
+│   ├── scripts/read-handoff.cjs    ← Read latest handoff
+│   ├── scripts/validate-handoff.cjs ← Validate handoff format
+│   └── memory.md                   ← Persistent cross-session memory
+├── .opencode/instructions/       ← OpenCode-specific knowledge base
+│   ├── project-context.md
+│   ├── lessons.md
+│   ├── patterns.md
+│   └── error-solutions.md
+└── CLAUDE.md                     ← Tool config (references .agents/AGENTS.md)
+```
+
+## Handoff File Mechanism
+
+Every session produces a handoff file in `.agents/handoffs/YYYYMMDD-HHMMSS-<agent>-<label>.md`.
+
+**Purpose**: Preserve session state, discoveries, errors, and next actions so the next session (or agent) can continue without context loss.
+
+**Format**: Markdown with YAML frontmatter:
+```yaml
+---
+handoff_version: "1.0"
+session_id: "20260716-session-001"
+source_agent: "opencode"
+target_agent: "*"
+discoveries:
+  - domain: "DBOS"
+    finding: "launch() hangs without timeout"
+    severity: "critical"
+    action: "Wrap in 5s timeout"
+errors:
+  - error: "ERR_MODULE_NOT_FOUND"
+    solution: "Dynamic import with ssr:false"
+next_session:
+  priority: ["Fix CI pipeline"]
+  warnings: ["DBOS may hang"]
+---
+# Session Handoff
+...
+```
+
+**Lifecycle**:
+1. **START**: Agent reads `.agents/AGENTS.md` → guardrails → memory → latest handoff
+2. **WORK**: Execute tasks, log discoveries to memory.md immediately
+3. **HANDOFF**: Create handoff file before session ends
+4. **END**: Run pre-commit checks, update docs
+
+**Commands**:
+```bash
+# Create a handoff file (interactive)
+node .agents/scripts/create-handoff.cjs <session-label>
+
+# Read the latest handoff
+node .agents/scripts/read-handoff.cjs
+
+# Validate the latest handoff
+node .agents/scripts/validate-handoff.cjs
+```
+
+## Agent Roles (Tool-Agnostic)
+
+| Role | Responsibility | Handoff Trigger |
+|------|---------------|-----------------|
+| `orchestrator` | Route tasks, manage handoffs, enforce lifecycle | Session end, task handover |
+| `planner` | Break features into tasks, estimate effort | Plan completed |
+| `developer` | Write TDD implementation code | Feature complete |
+| `reviewer` | Code quality, DBOS patterns, security review | Review complete |
+| `e2e-tester` | Playwright E2E tests, Page Object Models | Test suite done |
+| `security` | Secret scanning, input validation, dependency audit | Audit complete |
+| `build-fixer` | Fix TypeScript, module, build errors | Build fixed |
+| `knowledge` | Maintain .agents/, memory, lessons, patterns | KB updated |
+
+## Self-Learning Loop
+
+Every session **MUST**:
+1. Read the latest handoff on start
+2. Log at least 1 discovery to `.agents/memory.md`
+3. Create a handoff file before end
+4. Update knowledge base if new patterns/errors discovered
+
+## Guardrails (Summary)
+
+For the full guardrails, see `.agents/rules/guardrails.md`. Key rules:
+- **G1.1**: Pre-commit checklist mandatory before any commit
+- **G1.2**: Session lifecycle must be followed
+- **G1.3**: Test before implementation (TDD for fixes)
+- **G2.1**: No hardcoded secrets
+- **G3.1**: Immutability principle
+- **G3.2**: Touch only what you must
+- **G4.3**: Ask before DB migrations, env changes, package installs
+- **G5.1**: Mandatory discovery logging each session
+
+## Load Order
+
+At session start, agents MUST load:
+1. `.agents/AGENTS.md`
+2. `.agents/rules/guardrails.md`
+3. `.agents/rules/lifecycle.md`
+4. `.agents/memory.md`
+5. Latest `.agents/handoffs/*.md`
+6. `.opencode/instructions/*.md`
+
+---
+
+<!-- END:agents-handoff-system -->
 
 <!-- BEGIN:workflow101-project-rules -->
 
@@ -119,6 +254,11 @@ npm run local
 |------|---------|----------------|
 | `README.md` | Project documentation, setup, features | After any feature/change |
 | `AGENTS.md` | Agent instructions and rules | After session end |
+| `.agents/AGENTS.md` | Master agent config | After significant architecture changes |
+| `.agents/rules/guardrails.md` | Universal guardrails | When new guardrails needed |
+| `.agents/rules/lifecycle.md` | Session lifecycle | When lifecycle changes |
+| `.agents/memory.md` | Persistent cross-session memory | Every session |
+| `.agents/handoffs/` | Session handoff files | Every session end |
 | `primer.md` | Session context (start/end) | Every session |
 | `agent-memory.md` | Persistent project context | After significant changes |
 | `TODOS.md` | Task tracking with progress | After completing tasks |
@@ -131,23 +271,29 @@ npm run local
 - [ ] Update relevant files when completing features
 - [ ] Document new patterns in appropriate skill files
 - [ ] Update TODOS.md with completed items
-- [ ] Log significant discoveries in LESSONS.md
+- [ ] Log significant discoveries in `.agents/memory.md`
+- [ ] Log discoveries immediately, not batched at end
 
 ### Session End (Before Commit)
-1. **Update CHANGELOG.md** - Log all changes made
-2. **Update TODOS.md** - Mark completed tasks
-3. **Update README.md** - Document new features/changes
-4. **Update AGENTS.md** - Add new patterns/rules learned
-5. **Run verification** - Ensure build passes, tests pass
-6. **Review code changes** - Check for issues before commit
+1. **Create handoff file**: `node .agents/scripts/create-handoff.cjs <label>`
+2. **Update CHANGELOG.md** - Log all changes made
+3. **Update TODOS.md** - Mark completed tasks
+4. **Update README.md** - Document new features/changes
+5. **Update AGENTS.md** - Add new patterns/rules learned
+6. **Update .agents/memory.md** - Add session discoveries
+7. **Run verification** - Ensure build passes, tests pass
+8. **Review code changes** - Check for issues before commit
 
 ### Pre-Commit Checklist
 - [ ] Build passes: `npm run build`
 - [ ] Tests pass: `npm test`
 - [ ] No hardcoded secrets
+- [ ] Security check passes: `npm run security:check`
+- [ ] Handoff file created/updated
 - [ ] README.md reflects current state
 - [ ] CHANGELOG.md updated
 - [ ] TODOS.md marked complete
+- [ ] `.agents/memory.md` updated
 
 <!-- END:file-maintenance -->
 
@@ -161,6 +307,7 @@ npm run local
    - Missing error handling
    - Potential edge cases
    - Security issues
+   - Guardrail violations (see `.agents/rules/guardrails.md`)
 
 2. **Review tests** - Ensure:
    - New functionality has tests
@@ -182,6 +329,9 @@ Issues Found: X
 
 ### Issues
 1. [Severity] - Description
+
+### Guardrail Check
+[ ] All guardrails satisfied (see .agents/rules/guardrails.md)
 
 ### Approval
 [ ] Approved
@@ -242,15 +392,6 @@ const connectionString = "postgresql://user:password@host/db";
 | `.env.local` | ❌ NO | Real secrets (auto-gitignored) |
 | `.env.production` | ✅ Yes | Production non-secrets |
 | `.env.production.local` | ❌ NO | Production secrets |
-
-### Database Connection Priority
-```typescript
-// For Supabase, try in order:
-1. process.env.DIRECT_URL          // Direct connection (for migrations)
-2. process.env.DATABASE_REMOTE    // Pooler connection
-3. process.env.SUPABASE_DB_URL    // Manual URL
-4. process.env.SUPABASE_DB_PASSWORD + project ref // Fallback
-```
 
 **Secret management:** NEVER hardcode secrets. Use environment variables.
 
@@ -342,6 +483,18 @@ If `node_modules/` is corrupted (0-byte files, missing subpaths, "Invalid Versio
 | `npm run test:e2e:ui` | Run E2E tests with UI |
 | `vercel` | Deploy to Vercel |
 
+### Handoff Commands
+```bash
+# Create a handoff file
+node .agents/scripts/create-handoff.cjs <session-label>
+
+# Read the latest handoff
+node .agents/scripts/read-handoff.cjs
+
+# Validate all handoff files
+node .agents/scripts/validate-handoff.cjs --all
+```
+
 ### DBOS Commands
 ```bash
 # Inspect workflows on Vercel
@@ -363,55 +516,29 @@ npx workflow inspect status <workflow-id>
 npx workflow inspect logs <workflow-id>
 ```
 
-### Supabase CLI
-```bash
-# Link to Supabase project
-npx supabase link --project-ref vclwajxnqslrwkwkhwrw
+## Self-Learning & Handoff System
 
-# Push local migrations
-npx supabase db push
+The project includes a comprehensive self-learning loop with handoff files:
 
-# Generate types
-npx supabase gen types typescript --project-id vclwajxnqslrwkwkhwrw > types/supabase.ts
-```
+### Handoff File Mechanism
+- **Location**: `.agents/handoffs/YYYYMMDD-HHMMSS-<agent>-<label>.md`
+- **Format**: Markdown with YAML frontmatter (machine-parseable)
+- **Content**: Session context, discoveries, errors, next actions
 
-## Supabase Integration
+### Agent Definitions
+8 agent roles defined in `.agents/rules/agents.yaml`:
+- orchestrator, planner, developer, reviewer, e2e-tester, security, build-fixer, knowledge
 
-### Files Structure
-```
-app/utils/supabase/
-├── client.ts      # Browser client (createBrowserClient)
-├── server.ts      # Server client (createServerClient)
-├── middleware.ts   # Middleware client
-└── index.ts       # Exports
-```
+### Guardrails
+21 guardrails across 5 categories in `.agents/rules/guardrails.md`:
+- Process (4), Security (6), File Modification (5), Agent Behavior (4), Self-Learning (3)
 
-### Usage
-```typescript
-// Server Component
-import { createClient } from '@/utils/supabase/server';
-const supabase = await createClient();
+### Session Lifecycle
+Defined in `.agents/rules/lifecycle.md`:
+- START → WORK → HANDOFF → END
 
-// Client Component
-import { createClient } from '@/utils/supabase/client';
-const supabase = createClient();
-```
-
-### Required Table
-```sql
-CREATE TABLE workflow_executions (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  workflow_name TEXT NOT NULL,
-  workflow_id TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'PENDING',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  completed_at TIMESTAMPTZ,
-  input_data JSONB,
-  output_data JSONB,
-  error_message TEXT,
-  retry_count INT DEFAULT 0
-);
-```
+### Memory
+`.agents/memory.md` — append-only persistent cross-session memory
 
 ## OpenCode Agent Orchestrator
 
@@ -449,7 +576,7 @@ All commands have an **Outcome Capture** section that logs:
 ### Permissions
 
 - **File read**: Full project access
-- **File write**: `app/`, `tests/`, `.opencode/`, `docs/` directories only
+- **File write**: `app/`, `tests/`, `.agents/`, `.opencode/`, `docs/` directories only
 - **Commands**: npm, npx, git, node
 
 ### Architecture Decisions
@@ -479,3 +606,5 @@ See `docs/adr/` for full decision records:
 - No security vulnerabilities
 - 80%+ test coverage
 - E2E tests passing
+- Handoff files present for every session
+- Knowledge base updated with each session's discoveries
