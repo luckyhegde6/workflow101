@@ -1,6 +1,5 @@
 import { DBOS, WorkflowQueue } from '@dbos-inc/dbos-sdk';
 import { waitUntil } from '@vercel/functions';
-import { sleep } from 'workflow';
 import { getDatabaseConfig, getEnvironmentInfo } from '../../lib/database-config';
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -16,18 +15,16 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 const queue = new WorkflowQueue('exampleQueue');
 
 async function exampleWorkflow(message: string) {
-  'use workflow';
-  
   DBOS.logger.info(`Starting workflow with message: ${message}`);
   
-  await sleep('1s');
+  await DBOS.sleep(1000);
   DBOS.logger.info('Step 1 completed');
   
-  await sleep('1s');
+  await DBOS.sleep(1000);
   DBOS.logger.info('Step 2 completed');
   
   DBOS.logger.info('Workflow completed successfully');
-  return { success: true, message, completedAt: new Date().toISOString() };
+  return { success: true, message, completedAt: new Date(await DBOS.now()).toISOString() };
 }
 
 async function emailNotificationWorkflow(params: {
@@ -35,20 +32,18 @@ async function emailNotificationWorkflow(params: {
   subject: string;
   body: string;
 }) {
-  'use workflow';
-  
   DBOS.logger.info(`Sending email to ${params.to}`);
   
-  await sleep('1s');
+  await DBOS.sleep(1000);
   DBOS.logger.info('Email content validated');
   
-  await sleep('1s');
+  await DBOS.sleep(1000);
   DBOS.logger.info('Email sent successfully');
   
   return { 
     success: true, 
     to: params.to, 
-    sentAt: new Date().toISOString() 
+    sentAt: new Date(await DBOS.now()).toISOString() 
   };
 }
 
@@ -56,24 +51,22 @@ async function dataProcessingWorkflow(params: {
   dataId: string;
   operation: string;
 }) {
-  'use workflow';
-  
   DBOS.logger.info(`Processing data: ${params.dataId} with operation: ${params.operation}`);
   
-  await sleep('1s');
+  await DBOS.sleep(1000);
   DBOS.logger.info('Data fetched');
   
-  await sleep('1s');
+  await DBOS.sleep(1000);
   DBOS.logger.info('Data processed');
   
-  await sleep('1s');
+  await DBOS.sleep(1000);
   DBOS.logger.info('Results stored');
   
   return { 
     success: true, 
     dataId: params.dataId,
     operation: params.operation,
-    processedAt: new Date().toISOString()
+    processedAt: new Date(await DBOS.now()).toISOString()
   };
 }
 
@@ -81,23 +74,21 @@ async function onboardingWorkflow(params: {
   userId: string;
   email: string;
 }) {
-  'use workflow';
-  
   DBOS.logger.info(`Starting onboarding for user: ${params.userId}`);
   
-  await sleep('5s');
+  await DBOS.sleep(5000);
   DBOS.logger.info('Welcome email sent');
   
-  await sleep('1s');
+  await DBOS.sleep(1000);
   DBOS.logger.info('Account created');
   
-  await sleep('3s');
+  await DBOS.sleep(3000);
   DBOS.logger.info('Onboarding completed');
   
   return { 
     success: true, 
     userId: params.userId,
-    completedAt: new Date().toISOString()
+    completedAt: new Date(await DBOS.now()).toISOString()
   };
 }
 
@@ -105,21 +96,19 @@ async function scheduledReportWorkflow(params: {
   reportType: string;
   recipients: string[];
 }) {
-  'use workflow';
-  
   DBOS.logger.info(`Generating ${params.reportType} report`);
   
-  await sleep('2s');
+  await DBOS.sleep(2000);
   DBOS.logger.info('Report generated');
   
-  await sleep('1s');
+  await DBOS.sleep(1000);
   DBOS.logger.info('Report sent to recipients');
   
   return { 
     success: true, 
     reportType: params.reportType,
     recipientCount: params.recipients.length,
-    generatedAt: new Date().toISOString()
+    generatedAt: new Date(await DBOS.now()).toISOString()
   };
 }
 
@@ -127,20 +116,18 @@ async function webhookHandlerWorkflow(params: {
   eventType: string;
   payload: Record<string, unknown>;
 }) {
-  'use workflow';
-  
   DBOS.logger.info(`Processing webhook event: ${params.eventType}`);
   
-  await sleep('1s');
+  await DBOS.sleep(1000);
   DBOS.logger.info('Payload validated');
   
-  await sleep('1s');
+  await DBOS.sleep(1000);
   DBOS.logger.info('Event processed');
   
   return { 
     success: true, 
     eventType: params.eventType,
-    processedAt: new Date().toISOString()
+    processedAt: new Date(await DBOS.now()).toISOString()
   };
 }
 
@@ -207,7 +194,7 @@ export async function GET(request: Request) {
     }
 
     waitUntil(waitForQueuedWorkflowsToComplete(60000));
-    return new Response(JSON.stringify({ success: true, message: `DBOS Worker started at ${new Date().toISOString()}` }), {
+    return new Response(JSON.stringify({ success: true, message: `DBOS Worker started at ${new Date(await DBOS.now()).toISOString()}` }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
